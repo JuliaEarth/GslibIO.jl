@@ -10,7 +10,7 @@ Installation
 ------------
 
 ```julia
-Pkg.clone("https://github.com/SCRFMembers/GslibIO.jl.git")
+Pkg.add("GslibIO")
 ```
 
 Usage
