@@ -7,10 +7,10 @@ using Base.Test
   A = rand(10,10,10)
 
   # write to file
-  save(fname, A)
+  GslibIO.save(fname, A)
 
   # read from file
-  grid = load(fname)
+  grid = GslibIO.load(fname)
 
   # query grid object
   B = grid.array
