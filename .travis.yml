@@ -1,0 +1,19 @@
+language: julia
+
+os:
+  - linux
+  - osx
+
+julia:
+  - 0.5
+  - nightly
+
+notifications:
+  email: false
+
+script:
+  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
+  - julia --check-bounds=yes -e 'Pkg.clone(pwd()); Pkg.build("GslibIO"); Pkg.test("GslibIO"; coverage=true)'
+
+after_success:
+  - julia -e 'cd(Pkg.dir("GslibIO")); Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder())'
