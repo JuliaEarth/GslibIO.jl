@@ -37,7 +37,7 @@ function load(file::File{format"GSLIB"})
 end
 
 function save{T<:AbstractFloat}(file::File{format"GSLIB"}, array::AbstractArray{T,3};
-                                ox=0., oy=0., oz=0., dx=1., dy=1., dz=1.,
+                                origin=(0.,0.,0.), spacing=(1.,1.,1.),
                                 header="", propname="property")
   open(file, "w") do f
     # write header
@@ -46,8 +46,8 @@ function save{T<:AbstractFloat}(file::File{format"GSLIB"}, array::AbstractArray{
 
     # write dimensions
     write(f, @sprintf("%i %i %i\n", size(array)...))
-    write(f, @sprintf("%f %f %f\n", ox, oy, oz))
-    write(f, @sprintf("%f %f %f\n", dx, dy, dz))
+    write(f, @sprintf("%f %f %f\n", origin...))
+    write(f, @sprintf("%f %f %f\n", spacing...))
 
     # write property name and values
     write(f, "$propname\n")
