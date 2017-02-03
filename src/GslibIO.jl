@@ -2,6 +2,8 @@ __precompile__(true)
 
 module GslibIO
 
+using FileIO
+
 immutable GslibGRID{T<:AbstractFloat}
   array::AbstractArray{T,3}
   origin::NTuple{3,T}
