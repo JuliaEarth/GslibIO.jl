@@ -1,21 +1,21 @@
-using GslibIO
+using FileIO
 using Base.Test
 
 @testset "Basic checks" begin
-  fname = tempname()
+  fname = tempname()*".gslib"
 
   A = rand(10,10,10)
 
   # write to file
-  GslibIO.save(fname, A)
+  save(fname, A)
 
   # read from file
-  grid = GslibIO.load(fname)
+  grid = load(fname)
 
   # query grid object
   B = grid.array
 
   @test A == B
 
-  rm(filename)
+  rm(fname)
 end
