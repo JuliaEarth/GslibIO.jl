@@ -18,9 +18,9 @@ This package introduces an extended GSLIB format that addresses the issues liste
 ```
 # optional comment lines at the start of the file
 # more comments ...
-<Nx, Ny, Nz>
-<Ox, Oy, Oz>
-<dx, dy, dz>
+<Nx> <Ny> <Nz>
+<Ox> <Oy> <Oz>
+<dx> <dy> <dz>
 <property_name1>   <property_name2> ...   <property_nameN>
 <property_value11> <property_value12> ... <property_value1N>
 <property_value21> <property_value22> ... <property_value2N>
