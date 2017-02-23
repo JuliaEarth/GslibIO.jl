@@ -7,6 +7,9 @@ Utilities to read/write *extended* [GSLIB](http://www.gslib.com/gslib_help/forma
 [![GslibIO](http://pkg.julialang.org/badges/GslibIO_0.5.svg)](http://pkg.julialang.org/?pkg=GslibIO)
 [![Coverage Status](https://codecov.io/gh/juliohm/GslibIO.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/juliohm/GslibIO.jl)
 
+Introduction
+------------
+
 The GSLIB file format was introduced a long time ago for storing regular grids in text files that are easy to read. The format specification is incomplete mainly because:
 
 1. it doesn't contain the size of the grid (i.e. `(Nx, Ny, Nz)`)
