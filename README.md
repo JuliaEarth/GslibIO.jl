@@ -54,7 +54,13 @@ save(filename, [array1, array2, ...])
 # read 3D arrays from GSLIB file
 gridobj = load(filename)
 ```
-where `filename` **must have** extension `.gslib` or `.sgems`. `array1`, `array2`, ... are 3D Julia arrays and `gridobj` is an object that holds the properties (i.e. `gridobj.properties`) and other parameters of the grid. Additional saving options are available:
+where
+
+- `filename` **must have** extension `.gslib` or `.sgems`
+- `array1`, `array2`, ... are 3D Julia arrays
+- `gridobj` is an object that holds the properties (i.e. `gridobj.properties`)
+
+Additional saving options are available:
 
 - `origin` is the origin of the grid (default to `(0.,0.,0.)`)
 - `spacing` is the spacing of the grid (default to `(1.,1.,1.)`)
