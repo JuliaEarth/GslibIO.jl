@@ -4,8 +4,9 @@ module GslibIO
 
 using FileIO
 
-immutable GslibGRID{T<:AbstractFloat}
-  array::AbstractArray{T,3}
+immutable GslibGRID{T<:AbstractFloat,A<:AbstractArray{T,3}}
+  properties::Vector{A}
+  propnames::Vector{String}
   origin::NTuple{3,T}
   spacing::NTuple{3,T}
 end
@@ -25,33 +26,52 @@ function load(file::File{format"GSLIB"})
   ox, oy, oz = map(s -> parse(Float64, s), [ox,oy,oz])
   dx, dy, dz = map(s -> parse(Float64, s), [dx,dy,dz])
 
-  # skip property name
-  readline(fs)
+  # read property names
+  propnames = String.(split(readline(fs)))
 
   # read property values
-  array = reshape(readdlm(fs), nx, ny, nz)
+  P = readdlm(fs)
 
   close(f)
 
-  GslibGRID(array, (ox,oy,oz), (dx,dy,dz))
+  # reshape properties to grid size
+  properties = [reshape(P[:,j], nx, ny, nz) for j=1:size(P,2)]
+
+  GslibGRID(properties, propnames, (ox,oy,oz), (dx,dy,dz))
 end
 
-function save{T<:AbstractFloat}(file::File{format"GSLIB"}, array::AbstractArray{T,3};
-                                origin=(0.,0.,0.), spacing=(1.,1.,1.),
-                                header="", propname="property")
+function save(file::File{format"GSLIB"}, properties::Vector{A};
+              origin=(0.,0.,0.), spacing=(1.,1.,1.),
+              header="", propnames="") where {T<:AbstractFloat,A<:AbstractArray{T,3}}
+  # sanity checks
+  @assert length(Set(size.(properties))) == 1 "properties must have the same size"
+
+  # default property names
+  isempty(propnames) && (propnames = ["prop$i" for i=1:length(properties)])
+  @assert length(propnames) == length(properties) "number of property names must match number of properties"
+
+  # convert vector of names to a long string
+  propnames = join(propnames, " ")
+
+  # retrieve grid size
+  propsize = size(properties[1])
+
+  # collect all properties in a big matrix
+  P = hcat([prop[:] for prop in properties]...)
+
   open(file, "w") do f
     # write header
     write(f, "# This file was generated with GslibIO.jl\n")
     !isempty(header) && write(f, "#\n# "*header*"\n")
 
     # write dimensions
-    write(f, @sprintf("%i %i %i\n", size(array)...))
+    write(f, @sprintf("%i %i %i\n", propsize...))
     write(f, @sprintf("%f %f %f\n", origin...))
     write(f, @sprintf("%f %f %f\n", spacing...))
 
     # write property name and values
-    write(f, "$propname\n")
-    writedlm(stream(f), array[:])
+    write(f, "$propnames\n")
+    writedlm(stream(f), P, ' ')
   end
 end
 

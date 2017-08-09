@@ -48,15 +48,15 @@ This package follows Julia's [FileIO](https://github.com/JuliaIO/FileIO.jl) inte
 ```julia
 using FileIO
 
-# save 3D array to GSLIB file
-save(filename, array)
+# save 3D arrays to GSLIB file
+save(filename, [array1, array2, ...])
 
-# read 3D array from GSLIB file
+# read 3D arrays from GSLIB file
 gridobj = load(filename)
 ```
-where `filename` **must have** extension `.gslib` or `.sgems`, `array` is a 3D Julia array and `gridobj` is an object that holds the array of properties (i.e. `gridobj.array`) and other parameters of the grid. Additional saving options are available:
+where `filename` **must have** extension `.gslib` or `.sgems`, `array1`, `array2`, ... are 3D Julia arrays and `gridobj` is an object that holds the properties (i.e. `gridobj.properties`) and other parameters of the grid. Additional saving options are available:
 
 - `origin` is the origin of the grid (default to `(0.,0.,0.)`)
 - `spacing` is the spacing of the grid (default to `(1.,1.,1.)`)
 - `header` contains additional comments about the data
-- `propname` is the name of the property being saved
+- `propnames` is the name of each property being saved (default to `prop1`, `prop2`, ...)
