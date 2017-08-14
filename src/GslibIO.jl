@@ -75,4 +75,9 @@ function save(file::File{format"GSLIB"}, properties::Vector{A};
   end
 end
 
+function save(file::File{format"GSLIB"},
+              property::A; kwargs...) where {T<:AbstractFloat,A<:AbstractArray{T,3}}
+  save(file, [property]; kwargs...)
+end
+
 end
