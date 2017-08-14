@@ -18,5 +18,11 @@ using Base.Test
 
   @test props == [prop1,prop2]
 
+  # test version with single array
+  save(fname, prop1)
+  grid = load(fname)
+  props = grid.properties
+  @test props[1] == prop1
+
   rm(fname)
 end
