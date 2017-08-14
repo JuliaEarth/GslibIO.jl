@@ -50,6 +50,7 @@ using FileIO
 
 # save 3D arrays to GSLIB file
 save(filename, [array1, array2, ...])
+save(filename, array) # version with single array
 
 # read 3D arrays from GSLIB file
 gridobj = load(filename)
