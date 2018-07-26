@@ -1,5 +1,5 @@
 using FileIO
-using Base.Test
+using Test
 
 @testset "Basic checks" begin
   fname = tempname()*".gslib"

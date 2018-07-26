@@ -17,6 +17,8 @@ __precompile__(true)
 module GslibIO
 
 using FileIO
+using Printf
+using DelimitedFiles
 
 """
     GslibGRID
@@ -40,7 +42,7 @@ function load(file::File{format"GSLIB"})
   fs = stream(f)
 
   # skip header
-  skipchars(fs, _ -> false, linecomment='#')
+  skipchars(_ -> false, fs, linecomment='#')
 
   # read dimensions
   nx, ny, nz = split(readline(fs))
