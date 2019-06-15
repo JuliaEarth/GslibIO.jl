@@ -1,13 +1,11 @@
-GslibIO.jl
-==========
+# GslibIO.jl
 
 Utilities to read/write *extended* [GSLIB](http://www.gslib.com/gslib_help/format.html) files in Julia.
 
 [![Build Status](https://travis-ci.org/juliohm/GslibIO.jl.svg?branch=master)](https://travis-ci.org/juliohm/GslibIO.jl)
 [![Coverage Status](https://codecov.io/gh/juliohm/GslibIO.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/juliohm/GslibIO.jl)
 
-Introduction
-------------
+## Introduction
 
 The GSLIB file format was introduced a long time ago for storing regular grids in text files that are easy to read. The format specification is incomplete mainly because:
 
@@ -32,17 +30,17 @@ This package introduces an extended GSLIB format that addresses the issues liste
 
 Inactive cells are marked with the special symbol `NaN`. This means that all properties are saved as floating point numbers regardless of interpretation (categorical or continuous).
 
-Installation
-------------
+## Installation
 
 ```julia
 Pkg.add("GslibIO")
 ```
 
-Usage
------
+## Usage
 
 This package follows Julia's [FileIO](https://github.com/JuliaIO/FileIO.jl) interface, it provides two functions:
+
+### save
 
 ```julia
 using FileIO
@@ -50,19 +48,28 @@ using FileIO
 # save 3D arrays to GSLIB file
 save(filename, [array1, array2, ...])
 save(filename, array) # version with single array
-
-# read 3D arrays from GSLIB file
-gridobj = load(filename)
 ```
-where
-
-- `filename` **must have** extension `.gslib` or `.sgems`
-- `array1`, `array2`, ... are 3D Julia arrays
-- `gridobj` is an object that holds the properties (i.e. `gridobj.properties`)
-
-Additional saving options are available:
+where the following saving options are available:
 
 - `origin` is the origin of the grid (default to `(0.,0.,0.)`)
 - `spacing` is the spacing of the grid (default to `(1.,1.,1.)`)
 - `header` contains additional comments about the data
 - `propnames` is the name of each property being saved (default to `prop1`, `prop2`, ...)
+
+### read
+
+```julia
+using FileIO
+
+# read 3D arrays from GSLIB file
+grid = load(filename)
+```
+where
+
+- `filename` **must have** extension `.gslib` or `.sgems`
+- `array1`, `array2`, ... are 3D Julia arrays
+- `grid` is a `RegularGridData` object
+
+The user can retrieve specific properties of the grid using dictionarly-like syntax
+(e.g. `grid[:prop1]`), or retrieve all properties with `values(grid)`. For additional
+functionality, please consult the GeoStats.jl documentation.

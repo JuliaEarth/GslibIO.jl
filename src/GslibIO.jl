@@ -1,5 +1,4 @@
 # ------------------------------------------------------------------
-# Copyright (c) 2017, Júlio Hoffimann Mendes <juliohm@stanford.edu>
 # Licensed under the ISC License. See LICENCE in the project root.
 # ------------------------------------------------------------------
 
@@ -9,17 +8,7 @@ using FileIO
 using Printf
 using DelimitedFiles
 
-"""
-    GslibGRID
-
-Type holding all necessary information for saving/loading properties.
-"""
-struct GslibGRID{T<:AbstractFloat,A<:AbstractArray{T,3}}
-  properties::Vector{A}
-  propnames::Vector{String}
-  origin::NTuple{3,T}
-  spacing::NTuple{3,T}
-end
+using GeoStatsDevTools
 
 """
     load(file)
@@ -27,32 +16,31 @@ end
 Load grid properties from `file`.
 """
 function load(file::File{format"GSLIB"})
-  f = open(file)
-  fs = stream(f)
+  open(file) do f
+    fs = stream(f)
 
-  # skip header
-  skipchars(_ -> false, fs, linecomment='#')
+    # skip header
+    skipchars(_ -> false, fs, linecomment='#')
 
-  # read dimensions
-  nx, ny, nz = split(readline(fs))
-  ox, oy, oz = split(readline(fs))
-  dx, dy, dz = split(readline(fs))
-  nx, ny, nz = map(s -> parse(Int, s), [nx,ny,nz])
-  ox, oy, oz = map(s -> parse(Float64, s), [ox,oy,oz])
-  dx, dy, dz = map(s -> parse(Float64, s), [dx,dy,dz])
+    # read dimensions
+    nx, ny, nz = split(readline(fs))
+    ox, oy, oz = split(readline(fs))
+    sx, sy, sz = split(readline(fs))
+    nx, ny, nz = map(s -> parse(Int, s), [nx,ny,nz])
+    ox, oy, oz = map(s -> parse(Float64, s), [ox,oy,oz])
+    sx, sy, sz = map(s -> parse(Float64, s), [sx,sy,sz])
 
-  # read property names
-  propnames = String.(split(readline(fs)))
+    # read property names
+    vars = Symbol.(split(readline(fs)))
 
-  # read property values
-  P = readdlm(fs)
+    # read property values
+    X = readdlm(fs)
 
-  close(f)
+    # create data dictionary
+    data = Dict(vars[j] => reshape(X[:,j], nx, ny, nz) for j in 1:size(X,2))
 
-  # reshape properties to grid size
-  properties = [reshape(P[:,j], nx, ny, nz) for j=1:size(P,2)]
-
-  GslibGRID(properties, propnames, (ox,oy,oz), (dx,dy,dz))
+    RegularGridData(data, (ox,oy,oz), (sx,sy,sz))
+  end
 end
 
 """
