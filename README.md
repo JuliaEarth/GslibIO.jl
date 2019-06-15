@@ -72,4 +72,5 @@ where
 
 The user can retrieve specific properties of the grid using dictionarly-like syntax
 (e.g. `grid[:prop1]`), or retrieve all properties with `values(grid)`. For additional
-functionality, please consult the GeoStats.jl documentation.
+functionality, please consult the [GeoStats.jl](https://github.com/juliohm/GeoStats.jl)
+documentation.
