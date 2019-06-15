@@ -12,6 +12,11 @@ using Test
   @test grid[:prop1] == prop1
   @test grid[:prop2] == prop2
 
+  save(fname, grid)
+  grid = load(fname)
+  @test grid[:prop1] == prop1
+  @test grid[:prop2] == prop2
+
   save(fname, prop1)
   grid = load(fname)
   @test grid[:prop1] == prop1

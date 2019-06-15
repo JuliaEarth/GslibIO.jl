@@ -51,7 +51,7 @@ Save 1D `properties`, which originally had 3D size `propsize`.
 function save(file::File{format"GSLIB"},
               properties::Vector{V}, propsize::Tuple;
               origin=(0.,0.,0.), spacing=(1.,1.,1.),
-              header="", propnames="") where {T<:AbstractFloat,V<:AbstractArray{T,1}}
+              header="", propnames="") where {T<:Real,V<:AbstractArray{T,1}}
   # default property names
   isempty(propnames) && (propnames = ["prop$i" for i=1:length(properties)])
   @assert length(propnames) == length(properties) "number of property names must match number of properties"
@@ -84,7 +84,7 @@ end
 Save 3D `properties` by first flattening them into 1D properties.
 """
 function save(file::File{format"GSLIB"}, properties::Vector{A};
-              kwargs...) where {T<:AbstractFloat,A<:AbstractArray{T,3}}
+              kwargs...) where {T<:Real,A<:AbstractArray{T,3}}
   # sanity checks
   @assert length(Set(size.(properties))) == 1 "properties must have the same size"
 
@@ -103,8 +103,22 @@ end
 Save single 3D `property` by wrapping it into a singleton collection.
 """
 function save(file::File{format"GSLIB"},
-              property::A; kwargs...) where {T<:AbstractFloat,A<:AbstractArray{T,3}}
+              property::A; kwargs...) where {T<:Real,A<:AbstractArray{T,3}}
   save(file, [property]; kwargs...)
+end
+
+"""
+    save(file, grid)
+
+Save `grid` of type `RegularGridData` to file.
+"""
+function save(file::File{format"GSLIB"}, grid::RegularGridData{<:Any,3})
+  dict = values(grid)
+  propnames = collect(keys(dict))
+  properties = collect(values(dict))
+
+  save(file, properties, size(grid), origin=origin(grid),
+       spacing=spacing(grid), propnames=propnames)
 end
 
 end
