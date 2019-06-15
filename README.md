@@ -9,8 +9,8 @@ Utilities to read/write *extended* [GSLIB](http://www.gslib.com/gslib_help/forma
 
 The GSLIB file format was introduced a long time ago for storing regular grids in text files that are easy to read. The format specification is incomplete mainly because:
 
-1. it doesn't contain the size of the grid (i.e. `(Nx, Ny, Nz)`)
-2. it doesn't specify the origin and spacing (i.e. `(Ox, Oy, Oz)`, `(dx, dy, dz)`)
+1. it doesn't contain the size of the grid (i.e. `(nx, ny, nz)`)
+2. it doesn't specify the origin and spacing (i.e. `(ox, oy, oz)`, `(sx, sy, sz)`)
 3. it doesn't specify the special symbol for inactive cells (e.g. `-999`)
 
 This package introduces an extended GSLIB format that addresses the issues listed above:
@@ -18,9 +18,9 @@ This package introduces an extended GSLIB format that addresses the issues liste
 ```
 # optional comment lines at the start of the file
 # more comments ...
-<Nx> <Ny> <Nz>
-<Ox> <Oy> <Oz>
-<dx> <dy> <dz>
+<nx> <ny> <nz>
+<ox> <oy> <oz>
+<sx> <sy> <sz>
 <property_name1>   <property_name2> ...   <property_nameN>
 <property_value11> <property_value12> ... <property_value1N>
 <property_value21> <property_value22> ... <property_value2N>
