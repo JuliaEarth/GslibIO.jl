@@ -8,7 +8,7 @@ using FileIO
 using Printf
 using DelimitedFiles
 
-using GeoStatsDevTools
+using GeoStatsBase
 
 """
     load(file)
