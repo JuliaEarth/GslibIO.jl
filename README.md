@@ -70,7 +70,7 @@ where
 - `array1`, `array2`, ... are 3D Julia arrays
 - `grid` is a `RegularGridData` object
 
-The user can retrieve specific properties of the grid using dictionarly-like syntax
-(e.g. `grid[:prop1]`), or retrieve all properties with `values(grid)`. For additional
-functionality, please consult the [GeoStats.jl](https://github.com/juliohm/GeoStats.jl)
-documentation.
+The user can retrieve specific properties of the grid using dictionarly-like
+syntax (e.g. `grid[:prop1]`), and the available property names with `variables(grid)`.
+For additional functionality, please consult the
+[GeoStats.jl](https://github.com/juliohm/GeoStats.jl) documentation.
