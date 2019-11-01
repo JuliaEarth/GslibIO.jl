@@ -23,12 +23,9 @@ function load(file::File{format"GSLIB"})
     skipchars(_ -> false, fs, linecomment='#')
 
     # read dimensions
-    nx, ny, nz = split(readline(fs))
-    ox, oy, oz = split(readline(fs))
-    sx, sy, sz = split(readline(fs))
-    nx, ny, nz = map(s -> parse(Int, s), [nx,ny,nz])
-    ox, oy, oz = map(s -> parse(Float64, s), [ox,oy,oz])
-    sx, sy, sz = map(s -> parse(Float64, s), [sx,sy,sz])
+    nx, ny, nz = parse.(Int,     split(readline(fs)))
+    ox, oy, oz = parse.(Float64, split(readline(fs)))
+    sx, sy, sz = parse.(Float64, split(readline(fs)))
 
     # read property names
     vars = Symbol.(split(readline(fs)))
