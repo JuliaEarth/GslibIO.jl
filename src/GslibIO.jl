@@ -110,10 +110,8 @@ end
 Save `grid` of type `RegularGridData` to file.
 """
 function save(file::File{format"GSLIB"}, grid::RegularGridData{<:Any,3})
-  dict = values(grid)
-  propnames = collect(keys(dict))
-  properties = collect(values(dict))
-
+  propnames = sort(collect(keys(variables(grid))))
+  properties = [vec(grid[propname]) for propname in propnames]
   save(file, properties, size(grid), origin=origin(grid),
        spacing=spacing(grid), propnames=propnames)
 end
