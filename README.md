@@ -2,8 +2,8 @@
 
 Utilities to read/write *extended* [GSLIB](http://www.gslib.com/gslib_help/format.html) files in Julia.
 
-[![Build Status](https://travis-ci.org/juliohm/GslibIO.jl.svg?branch=master)](https://travis-ci.org/juliohm/GslibIO.jl)
-[![Coverage Status](https://codecov.io/gh/juliohm/GslibIO.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/juliohm/GslibIO.jl)
+[![Build Status](https://travis-ci.org/JuliaEarth/GslibIO.jl.svg?branch=master)](https://travis-ci.org/JuliaEarth/GslibIO.jl)
+[![Coverage Status](https://codecov.io/gh/JuliaEarth/GslibIO.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaEarth/GslibIO.jl)
 
 ## Introduction
 
@@ -73,4 +73,4 @@ where
 The user can retrieve specific properties of the grid using dictionarly-like
 syntax (e.g. `grid[:prop1]`), and the available property names with `variables(grid)`.
 For additional functionality, please consult the
-[GeoStats.jl](https://github.com/juliohm/GeoStats.jl) documentation.
+[GeoStats.jl](https://github.com/JuliaEarth/GeoStats.jl) documentation.
