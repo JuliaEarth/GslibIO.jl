@@ -34,9 +34,36 @@ function load(file::File{format"GSLIB"})
     X = readdlm(fs)
 
     # create data dictionary
-    data = Dict(vars[j] => reshape(X[:,j], nx, ny, nz) for j in 1:size(X,2))
+    data = OrderedDict([vars[j] => reshape(X[:,j], nx, ny, nz) for j in 1:size(X,2)])
 
     RegularGridData(data, (ox,oy,oz), (sx,sy,sz))
+  end
+end
+
+"""
+    load_legacy(filename, dims; origin=(0.,0.,0.), spacing=(1.,1.,1.))
+
+Load legacy GSLIB `filename` into a grid with `dims`, `origin` and `spacing`.
+"""
+function load_legacy(filename::AbstractString, dims::NTuple{3,Int};
+                     origin=(0.,0.,0.), spacing=(1.,1.,1.))
+  open(filename) do fs
+    # skip header
+    readline(fs)
+
+    # number of properties
+    nvars = parse.(Int, readline(fs))
+
+    # properties names
+    vars = [Symbol(readline(fs)) for i in 1:nvars]
+
+    # read property values
+    X = readdlm(fs)
+
+    # create data dictionary
+    data = OrderedDict([vars[i] => reshape(X[:,i], dims) for i in 1:nvars])
+
+    RegularGridData(data, origin, spacing)
   end
 end
 
