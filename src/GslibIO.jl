@@ -41,12 +41,13 @@ function load(file::File{format"GSLIB"})
 end
 
 """
-    load_legacy(filename, dims; origin=(0.,0.,0.), spacing=(1.,1.,1.))
+    load_legacy(filename, dims; origin=(0.,0.,0.), spacing=(1.,1.,1.), na=-999)
 
 Load legacy GSLIB `filename` into a grid with `dims`, `origin` and `spacing`.
+Optionally set the value used for missings `na`.
 """
 function load_legacy(filename::AbstractString, dims::NTuple{3,Int};
-                     origin=(0.,0.,0.), spacing=(1.,1.,1.))
+                     origin=(0.,0.,0.), spacing=(1.,1.,1.), na=-999)
   open(filename) do fs
     # skip header
     readline(fs)
@@ -59,6 +60,9 @@ function load_legacy(filename::AbstractString, dims::NTuple{3,Int};
 
     # read property values
     X = readdlm(fs)
+
+    # handle missing values
+    replace!(X, na=>NaN)
 
     # create data dictionary
     data = OrderedDict([vars[i] => reshape(X[:,i], dims) for i in 1:nvars])

@@ -39,8 +39,11 @@ datadir = joinpath(@__DIR__,"data")
     @test size(grid) == (2,2,2)
     @test origin(grid) == [0.,0.,0.]
     @test spacing(grid) == [1.,1.,1.]
-    @test vec(grid[:Porosity]) == [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8]
-    @test vec(grid[:Lithology]) == [1,2,3,4,5,6,7,8]
-    @test vec(grid[Symbol("Water Saturation")]) == [0.8,0.7,0.8,0.7,0.8,0.7,0.8,0.7]
+    por = vec(grid[:Porosity])
+    lit = vec(grid[:Lithology])
+    sat = vec(grid[Symbol("Water Saturation")])
+    @test isequal(por, [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8])
+    @test isequal(lit, [1,2,3,4,5,6,7,8])
+    @test isequal(sat, [0.8,0.7,0.8,0.7,0.8,0.7,0.8,NaN])
   end
 end
