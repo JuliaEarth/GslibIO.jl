@@ -56,7 +56,7 @@ where the following saving options are available:
 - `header` contains additional comments about the data
 - `propnames` is the name of each property being saved (default to `prop1`, `prop2`, ...)
 
-### read
+### load
 
 ```julia
 using FileIO
@@ -74,3 +74,12 @@ The user can retrieve specific properties of the grid using dictionarly-like
 syntax (e.g. `grid[:prop1]`), and the available property names with `variables(grid)`.
 For additional functionality, please consult the
 [GeoStats.jl](https://github.com/JuliaEarth/GeoStats.jl) documentation.
+
+Additionally, it provides a load function for legacy GSLIB files (not exported):
+
+
+```julia
+using GslibIO
+
+grid = GslibIO.load_legacy("filename.gslib", dims=(100,100,100), na=-999)
+```
