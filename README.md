@@ -75,8 +75,9 @@ syntax (e.g. `grid[:prop1]`), and the available property names with `variables(g
 For additional functionality, please consult the
 [GeoStats.jl](https://github.com/JuliaEarth/GeoStats.jl) documentation.
 
-Additionally, it provides a load function for legacy GSLIB files (not exported):
+## Legacy format
 
+Additionally, this package provides a load function for legacy GSLIB files:
 
 ```julia
 using GslibIO
