@@ -32,8 +32,10 @@ Inactive cells are marked with the special symbol `NaN`. This means that all pro
 
 ## Installation
 
+Get the latest stable release with Julia's package manager:
+
 ```julia
-Pkg.add("GslibIO")
+] add GslibIO
 ```
 
 ## Usage
