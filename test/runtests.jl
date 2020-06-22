@@ -12,22 +12,24 @@ datadir = joinpath(@__DIR__,"data")
   @testset "Basic" begin
     fname = tempname()*".gslib"
 
-    prop1 = rand(10,10,10)
-    prop2 = rand(10,10,10)
+    props3D = rand(10,10,10), rand(10,10,10)
+    props2D = rand(10,10), rand(10,10)
 
-    save(fname, [prop1,prop2])
-    grid = load(fname)
-    @test grid[:prop1] == prop1
-    @test grid[:prop2] == prop2
+    for (prop1, prop2) in [props2D, props3D]
+      save(fname, [prop1,prop2])
+      grid = load(fname)
+      @test grid[:prop1] == prop1
+      @test grid[:prop2] == prop2
 
-    save(fname, grid)
-    grid = load(fname)
-    @test grid[:prop1] == prop1
-    @test grid[:prop2] == prop2
+      save(fname, grid)
+      grid = load(fname)
+      @test grid[:prop1] == prop1
+      @test grid[:prop2] == prop2
 
-    save(fname, prop1)
-    grid = load(fname)
-    @test grid[:prop1] == prop1
+      save(fname, prop1)
+      grid = load(fname)
+      @test grid[:prop1] == prop1
+    end
 
     rm(fname)
   end

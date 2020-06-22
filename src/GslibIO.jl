@@ -10,6 +10,9 @@ using DelimitedFiles
 
 using GeoStatsBase
 
+# type aliases
+const Array2or3{T} = Union{AbstractArray{T,2},AbstractArray{T,3}}
+
 """
     load(file)
 
@@ -23,9 +26,9 @@ function load(file::File{format"GSLIB"})
     skipchars(_ -> false, fs, linecomment='#')
 
     # read dimensions
-    nx, ny, nz = parse.(Int,     split(readline(fs)))
-    ox, oy, oz = parse.(Float64, split(readline(fs)))
-    sx, sy, sz = parse.(Float64, split(readline(fs)))
+    dims = parse.(Int,     Tuple(split(readline(fs))))
+    orig = parse.(Float64, Tuple(split(readline(fs))))
+    spac = parse.(Float64, Tuple(split(readline(fs))))
 
     # read property names
     vars = Symbol.(split(readline(fs)))
@@ -34,9 +37,9 @@ function load(file::File{format"GSLIB"})
     X = readdlm(fs)
 
     # create data dictionary
-    data = OrderedDict([vars[j] => reshape(X[:,j], nx, ny, nz) for j in 1:size(X,2)])
+    data = OrderedDict([vars[j] => reshape(view(X,:,j), dims) for j in 1:size(X,2)])
 
-    RegularGridData(data, (ox,oy,oz), (sx,sy,sz))
+    RegularGridData(data, orig, spac)
   end
 end
 
@@ -72,14 +75,14 @@ function load_legacy(filename::AbstractString, dims::NTuple{3,Int};
 end
 
 """
-    save(file, properties, propsize; [optional parameters])
+    save(file, properties, dims; [optional parameters])
 
-Save 1D `properties`, which originally had 3D size `propsize`.
+Save 1D `properties` to `file`, which originally had size `dims`.
 """
 function save(file::File{format"GSLIB"},
-              properties::Vector{V}, propsize::Tuple;
-              origin=(0.,0.,0.), spacing=(1.,1.,1.),
-              header="", propnames="") where {T<:Real,V<:AbstractArray{T,1}}
+              properties::AbstractVector, dims::Dims{N};
+              origin=ntuple(i->0.0,N), spacing=ntuple(i->1.0,N),
+              header="", propnames="") where {N}
   # default property names
   isempty(propnames) && (propnames = ["prop$i" for i=1:length(properties)])
   @assert length(propnames) == length(properties) "number of property names must match number of properties"
@@ -88,7 +91,7 @@ function save(file::File{format"GSLIB"},
   propnames = join(propnames, " ")
 
   # collect all properties in a big matrix
-  P = hcat(properties...)
+  P = reduce(hcat, properties)
 
   open(file, "w") do f
     # write header
@@ -96,9 +99,10 @@ function save(file::File{format"GSLIB"},
     !isempty(header) && write(f, "#\n# "*header*"\n")
 
     # write dimensions
-    write(f, @sprintf("%i %i %i\n", propsize...))
-    write(f, @sprintf("%f %f %f\n", origin...))
-    write(f, @sprintf("%f %f %f\n", spacing...))
+    dimsstr = join([@sprintf "%i" i for i in dims], " ")
+    origstr = join([@sprintf "%f" o for o in origin], " ")
+    spacstr = join([@sprintf "%f" s for s in spacing], " ")
+    write(f, dimsstr*"\n"*origstr*"\n"*spacstr*"\n")
 
     # write property name and values
     write(f, "$propnames\n")
@@ -109,29 +113,29 @@ end
 """
     save(file, properties, [optional parameters])
 
-Save 3D `properties` by first flattening them into 1D properties.
+Save 2D/3D `properties` by first flattening them into 1D properties.
 """
 function save(file::File{format"GSLIB"}, properties::Vector{A};
-              kwargs...) where {T<:Real,A<:AbstractArray{T,3}}
+              kwargs...) where {T,A<:Array2or3{T}}
   # sanity checks
   @assert length(Set(size.(properties))) == 1 "properties must have the same size"
 
   # retrieve grid size
-  propsize = size(properties[1])
+  dims = size(properties[1])
 
   # flatten and proceed with pipeline
-  flatprops = [prop[:] for prop in properties]
+  flatprops = [vec(prop) for prop in properties]
 
-  save(file, flatprops, propsize, kwargs...)
+  save(file, flatprops, dims, kwargs...)
 end
 
 """
     save(file, property)
 
-Save single 3D `property` by wrapping it into a singleton collection.
+Save single 2D/3D `property` by wrapping it into a singleton collection.
 """
 function save(file::File{format"GSLIB"},
-              property::A; kwargs...) where {T<:Real,A<:AbstractArray{T,3}}
+              property::A; kwargs...) where {T,A<:Array2or3{T}}
   save(file, [property]; kwargs...)
 end
 
@@ -140,7 +144,7 @@ end
 
 Save `grid` of type `RegularGridData` to file.
 """
-function save(file::File{format"GSLIB"}, grid::RegularGridData{<:Any,3})
+function save(file::File{format"GSLIB"}, grid::RegularGridData)
   propnames = sort(collect(keys(variables(grid))))
   properties = [vec(grid[propname]) for propname in propnames]
   save(file, properties, size(grid), origin=origin(grid),

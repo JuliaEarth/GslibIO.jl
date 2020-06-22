@@ -63,13 +63,13 @@ where the following saving options are available:
 ```julia
 using FileIO
 
-# read 3D arrays from GSLIB file
+# read arrays from GSLIB file
 grid = load(filename)
 ```
 where
 
 - `filename` **must have** extension `.gslib` or `.sgems`
-- `array1`, `array2`, ... are 3D Julia arrays
+- `array1`, `array2`, ... are 2D/3D Julia arrays
 - `grid` is a `RegularGridData` object
 
 The user can retrieve specific properties of the grid using dictionarly-like
