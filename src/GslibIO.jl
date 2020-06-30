@@ -37,9 +37,10 @@ function load(file::File{format"GSLIB"})
     X = readdlm(fs)
 
     # create data dictionary
-    data = OrderedDict([vars[j] => reshape(view(X,:,j), dims) for j in 1:size(X,2)])
+    data = DataFrame(vars .=> eachcol(X))
+    domain = RegularGrid(dims, orig, spac)
 
-    RegularGridData(data, orig, spac)
+    georef(data, domain)
   end
 end
 
@@ -68,9 +69,10 @@ function load_legacy(filename::AbstractString, dims::NTuple{3,Int};
     replace!(X, na=>NaN)
 
     # create data dictionary
-    data = OrderedDict([vars[i] => reshape(X[:,i], dims) for i in 1:nvars])
+    data = DataFrame(vars .=> eachcol(X))
+    domain = RegularGrid(dims, origin, spacing)
 
-    RegularGridData(data, origin, spacing)
+    georef(data, domain)
   end
 end
 
@@ -140,13 +142,15 @@ function save(file::File{format"GSLIB"},
 end
 
 """
-    save(file, grid)
+    save(file, sdata)
 
-Save `grid` of type `RegularGridData` to file.
+Save spatial data `sdata` with `RegularGrid` domain to `file`.
 """
-function save(file::File{format"GSLIB"}, grid::RegularGridData)
-  propnames = sort(collect(keys(variables(grid))))
-  properties = [vec(grid[propname]) for propname in propnames]
+function save(file::File{format"GSLIB"}, sdata::SpatialData)
+  grid = domain(sdata)
+  vars = variables(sdata)
+  propnames = sort(collect(keys(vars)))
+  properties = [sdata[propname] for propname in propnames]
   save(file, properties, size(grid), origin=origin(grid),
        spacing=spacing(grid), propnames=propnames)
 end

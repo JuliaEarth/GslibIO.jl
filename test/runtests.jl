@@ -18,17 +18,17 @@ datadir = joinpath(@__DIR__,"data")
     for (prop1, prop2) in [props2D, props3D]
       save(fname, [prop1,prop2])
       grid = load(fname)
-      @test grid[:prop1] == prop1
-      @test grid[:prop2] == prop2
+      @test grid[:prop1] == vec(prop1)
+      @test grid[:prop2] == vec(prop2)
 
       save(fname, grid)
       grid = load(fname)
-      @test grid[:prop1] == prop1
-      @test grid[:prop2] == prop2
+      @test grid[:prop1] == vec(prop1)
+      @test grid[:prop2] == vec(prop2)
 
       save(fname, prop1)
       grid = load(fname)
-      @test grid[:prop1] == prop1
+      @test grid[:prop1] == vec(prop1)
     end
 
     rm(fname)
@@ -37,13 +37,13 @@ datadir = joinpath(@__DIR__,"data")
   @testset "Legacy" begin
     fname = joinpath(datadir,"legacy.gslib")
 
-    grid = GslibIO.load_legacy(fname, (2,2,2))
-    @test size(grid) == (2,2,2)
-    @test origin(grid) == [0.,0.,0.]
-    @test spacing(grid) == [1.,1.,1.]
-    por = vec(grid[:Porosity])
-    lit = vec(grid[:Lithology])
-    sat = vec(grid[Symbol("Water Saturation")])
+    sdata = GslibIO.load_legacy(fname, (2,2,2))
+    @test size(domain(sdata)) == (2,2,2)
+    @test origin(domain(sdata)) == [0.,0.,0.]
+    @test spacing(domain(sdata)) == [1.,1.,1.]
+    por = sdata[:Porosity]
+    lit = sdata[:Lithology]
+    sat = sdata[Symbol("Water Saturation")]
     @test isequal(por, [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8])
     @test isequal(lit, [1,2,3,4,5,6,7,8])
     @test isequal(sat, [0.8,0.7,0.8,0.7,0.8,0.7,0.8,NaN])
