@@ -37,7 +37,7 @@ function load(file::File{format"GSLIB"})
     X = readdlm(fs)
 
     # create data dictionary
-    data = DataFrame(vars .=> eachcol(X))
+    data = (; zip(vars, eachcol(X))...)
     domain = RegularGrid(dims, orig, spac)
 
     georef(data, domain)
@@ -69,7 +69,7 @@ function load_legacy(filename::AbstractString, dims::NTuple{3,Int};
     replace!(X, na=>NaN)
 
     # create data dictionary
-    data = DataFrame(vars .=> eachcol(X))
+    data = (; zip(vars, eachcol(X))...)
     domain = RegularGrid(dims, origin, spacing)
 
     georef(data, domain)
