@@ -146,13 +146,13 @@ end
 
 Save spatial data `sdata` with `RegularGrid` domain to `file`.
 """
-function save(file::File{format"GSLIB"}, sdata::SpatialData)
-  grid = domain(sdata)
-  vars = variables(sdata)
-  propnames = sort(collect(keys(vars)))
-  properties = [sdata[propname] for propname in propnames]
-  save(file, properties, size(grid), origin=origin(grid),
-       spacing=spacing(grid), propnames=propnames)
+function save(file::File{format"GSLIB"}, sdata::AbstractData)
+  vars  = name.(variables(sdata))
+  grid  = domain(sdata)
+  table = values(sdata)
+  save(file, collect(eachcol(table)), size(grid),
+       origin=origin(grid), spacing=spacing(grid),
+       propnames=vars)
 end
 
 end
