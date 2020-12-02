@@ -7,11 +7,15 @@ module GslibIO
 using FileIO
 using Printf
 using DelimitedFiles
+using DataFrames
 
 using GeoStatsBase
 
 # type aliases
 const Array2or3{T} = Union{AbstractArray{T,2},AbstractArray{T,3}}
+
+# For naming coordinates in a grid
+const DefaultCoordNames = [:x, :y, :z]
 
 """
     load(file)
@@ -45,6 +49,34 @@ function load(file::File{format"GSLIB"})
 end
 
 """
+    parse_gslib(filename::AbstractString)
+
+Helper function to parse a standard GSLIB file.
+It returns the data as a matrix `X`, `header`, number of variables `nvars`,
+extra info in the second line `extrainfo`, and the variable names as String `vars`.
+"""
+function parse_gslib(filename::AbstractString)
+  open(filename) do fs
+    # skip header
+    header = readline(fs)
+
+    # number of properties is the first integer (it may contain extra info)
+    line = readline(fs)
+    linecont = split(line)
+    nvars = parse(Int, linecont[1])
+    extrainfo = linecont[1:end]
+
+    # properties names
+    vars = [strip(readline(fs)) for i in 1:nvars]
+
+    # read property values
+    X = readdlm(fs)
+
+    return X, header, nvars, extrainfo, vars
+  end
+end
+
+"""
     load_legacy(filename, dims; origin=(0.,0.,0.), spacing=(1.,1.,1.), na=-999)
 
 Load legacy GSLIB `filename` into a grid with `dims`, `origin` and `spacing`.
@@ -52,28 +84,63 @@ Optionally set the value used for missings `na`.
 """
 function load_legacy(filename::AbstractString, dims::NTuple{3,Int};
                      origin=(0.,0.,0.), spacing=(1.,1.,1.), na=-999)
-  open(filename) do fs
-    # skip header
-    readline(fs)
 
-    # number of properties
-    nvars = parse.(Int, readline(fs))
+  X, header, nvars, extrainfo, vars = parse_gslib(filename)
 
-    # properties names
-    vars = [Symbol(readline(fs)) for i in 1:nvars]
+  # property names
+  propnames = [Symbol(v) for v in vars]
 
-    # read property values
-    X = readdlm(fs)
+  # handle missing values
+  replace!(X, na=>NaN)
 
-    # handle missing values
-    replace!(X, na=>NaN)
+  # create data dictionary
+  data = (; zip(propnames, eachcol(X))...)
+  domain = RegularGrid(dims, origin, spacing)
 
-    # create data dictionary
-    data = (; zip(vars, eachcol(X))...)
-    domain = RegularGrid(dims, origin, spacing)
+  georef(data, domain)
+end
 
-    georef(data, domain)
+"""
+    load_legacy(filename, coordnames, na=-999)
+
+Load legacy GSLIB `filename` into a PointSet using the properties in `coordnames` as coordinates.
+Optionally set the value used for missings `na`.
+"""
+function load_legacy(filename::AbstractString, coordnames=NTuple; na=-999)
+
+  X, header, nvars, extrainfo, vars = parse_gslib(filename)
+
+  # property names
+  propnames = [Symbol(v) for v in vars]
+
+  # check coordinates are in vars and transform to Symbol if needed
+  if eltype(coordnames) === String
+    for var in coordnames
+      @assert var ∈ vars "$var is not a variable in the GSLIB file"
+    end
+    coordprops = [Symbol(v) for v in coordnames] # transform the properties from String to Symbol
+  elseif eltype(coordnames) === Symbol
+    for var in coordnames
+      @assert var ∈ propnames "$var is not a variable in the GSLIB file"
+    end
+    coordprops = coordnames
+  elseif eltype(coordnames) === Int
+    for var in coordnames
+      @assert 1 <= var <= length(propnames) "$var is not a variable in the GSLIB file"
+    end
+    coordprops = [propnames[i] for i in coordnames] # transform the properties from index to Symbol
+  else
+    itemtype = eltype(coordnames)
+    error("Coordinates must be an iterable of String, Symbol or Integer, but not '$itemtype'")
   end
+
+  # handle missing values
+  replace!(X, na=>NaN)
+
+  # create data dictionary
+  data = (; zip(propnames, eachcol(X))...)
+
+  georef(DataFrame(data), coordprops)
 end
 
 """
@@ -153,6 +220,63 @@ function save(file::File{format"GSLIB"}, sdata::AbstractData)
   save(file, collect(eachcol(table)), size(grid),
        origin=origin(grid), spacing=spacing(grid),
        propnames=vars)
+end
+
+
+"""
+    save_legacy(file, sdata)
+
+Save spatial data `sdata` to `file` using standard GSLIB format.
+"""
+function save_legacy(filename::AbstractString, sdata::AbstractData; coordnames=nothing, na=-999.0)
+  vars  = name.(variables(sdata))
+  sdomain = domain(sdata)
+  locations  = coordinates(sdomain)
+  ncoords = size(locations, 1)
+  @assert 1 <= ncoords <= 3
+  table = values(sdata)
+
+  # add coordinates to table if sdata is a PointSet
+  if isa(sdomain, PointSet)
+    if !isnothing(coordnames)
+      @assert length(coordnames) == ncoords
+      cn = [Symbol(v) for v in coordnames]
+    else
+      cn = DefaultCoordNames
+    end
+    # Could this be done better?
+    if ncoords == 1
+      insertcols!(table, 1, cn[1] => locations[1, :])
+    elseif ncoords == 2
+      insertcols!(table, 1, cn[1] => locations[1, :],
+                            cn[2] => locations[2, :])
+    else      
+      insertcols!(table, 1, cn[1] => locations[1, :],
+                            cn[2] => locations[2, :],
+                            cn[3] => locations[3, :])
+    end
+  end
+
+  open(filename, "w") do f
+    # write header
+    write(f, "This file was generated with GslibIO.jl\n")
+
+    # write number of variables
+    if isa(sdomain, PointSet)
+      nvars = length(vars) + ncoords
+    elseif isa(sdomain, RegularGrid)
+      nvars = length(vars)
+    end
+    write(f, "$nvars\n")
+    for v in names(table)
+      write(f, "$v\n")
+    end
+    # write properties delimited by space
+    X = Array(table)
+    # handle missing values
+    replace!(X, NaN=>na)
+    writedlm(f, X, ' ')
+  end
 end
 
 end

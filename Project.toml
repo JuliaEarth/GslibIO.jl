@@ -4,6 +4,7 @@ author = "Júlio Hoffimann <julio.hoffimann@gmail.com>"
 version = "0.5.4"
 
 [deps]
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 FileIO = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
 GeoStatsBase = "323cb8eb-fbf6-51c0-afd0-f8fba70507b2"
