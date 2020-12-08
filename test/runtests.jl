@@ -34,55 +34,47 @@ datadir = joinpath(@__DIR__, "data")
     rm(fname)
   end
 
-  @testset "Legacy" begin
+  @testset "GSLIBParser" begin
     fname = joinpath(datadir, "legacy_grid.gslib")
 
-    sdata_grid = GslibIO.load_legacy(fname, (2, 2, 2))
-    @test size(domain(sdata_grid)) == (2, 2, 2)
-    @test origin(domain(sdata_grid)) == [0., 0., 0.]
-    @test spacing(domain(sdata_grid)) == [1., 1., 1.]
-    por = sdata_grid[:Porosity]
-    lit = sdata_grid[:Lithology]
-    sat = sdata_grid[Symbol("Water Saturation")]
-    @test isequal(por, [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8])
-    @test isequal(lit, [1, 2, 3, 4, 5, 6, 7, 8])
-    @test isequal(sat, [0.8, 0.7, 0.8, 0.7, 0.8, 0.7, 0.8, NaN])
+    X, metadata = GslibIO.parse_gslib(fname)
 
-    fname = joinpath(datadir,"legacy_scatter.gslib")
+    @test isequal(X[:, 1], [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8])
+    @test isequal(X[:, 2], [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0])
+    @test isequal(X[:, 3], [0.8, 0.7, 0.8, 0.7, 0.8, 0.7, 0.8, -999.0])
 
-    sdata_scattered = GslibIO.load_legacy(fname, (:East, :North, :Elevation))
-    cdata = coordinates(sdata_scattered)
-    @test nelms(sdata_scattered) == 3
-    por = sdata_scattered[:Porosity]
-    @test isequal(por, [0.1, 0.2, 0.3])
-    @test isequal(cdata[1, :], [10.0, 20.0, 30.0])
-    @test isequal(cdata[2, :], [11.0, 21.0, 31.0])
-    @test isequal(cdata[3, :], [12.0, 22.0, 32.0])
+    @test metadata.nvars == 3
+    @test metadata.varnames == ["Porosity", "Lithology", "Water Saturation"]
+    @test metadata.extrainfo == "2  2  2 0.5 0.5 0.5 1.0 1.0 1.0"
 
-    # save/load them back
-    fname = tempname()*".gslib"
+    fname = joinpath(datadir, "legacy_scatter.gslib")
 
-    GslibIO.save_legacy(fname, sdata_grid)
-    grid  = GslibIO.load_legacy(fname, (2, 2, 2))
+    X, metadata = GslibIO.parse_gslib(fname)
 
-    @test size(domain(sdata_grid)) == size(domain(grid))
-    @test origin(domain(sdata_grid)) == origin(domain(grid))
-    @test spacing(domain(sdata_grid)) == spacing(domain(grid))
-    @test isequal(sdata_grid[:Porosity], grid[:Porosity])
-    @test isequal(sdata_grid[:Lithology], grid[:Lithology])
-    @test isequal(sdata_grid[Symbol("Water Saturation")], grid[Symbol("Water Saturation")])
+    @test metadata.nvars == 4
+    @test metadata.varnames == ["East", "North", "Elevation", "Porosity"]
+    @test metadata.extrainfo == ""
 
-    GslibIO.save_legacy(fname, sdata_scattered)
-    scattered = GslibIO.load_legacy(fname, (:x, :y, :z))
+    @test isequal(X[:, 1], [10.0, 20.0, 30.0])
+    @test isequal(X[:, 2], [11.0, 21.0, 31.0])
+    @test isequal(X[:, 3], [12.0, 22.0, 32.0])
+    @test isequal(X[:, 4], [0.1, 0.2, 0.3])
 
-    @test isequal(coordinates(sdata_scattered), coordinates(scattered))
-    @test isequal(sdata_scattered[:Porosity], scattered[:Porosity])
+  end  
 
-    # save/load using different coordinate names
-    GslibIO.save_legacy(fname, sdata_scattered, coordnames = ("east", "north", "elevation"))
-    scattered = GslibIO.load_legacy(fname, (:east, :north, :elevation))
-    @test isequal(coordinates(sdata_scattered), coordinates(scattered))
-    @test isequal(sdata_scattered[:Porosity], scattered[:Porosity])
+  @testset "Legacy" begin
+    fname = joinpath(datadir,"legacy_grid.gslib")
 
+    sdata = GslibIO.load_legacy(fname, (2,2,2))
+    @test size(domain(sdata)) == (2,2,2)
+    @test origin(domain(sdata)) == [0.,0.,0.]
+    @test spacing(domain(sdata)) == [1.,1.,1.]
+    por = sdata[:Porosity]
+    lit = sdata[:Lithology]
+    sat = sdata[Symbol("Water Saturation")]
+    @test isequal(por, [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8])
+    @test isequal(lit, [1,2,3,4,5,6,7,8])
+    @test isequal(sat, [0.8,0.7,0.8,0.7,0.8,0.7,0.8,NaN])
   end
+
 end
