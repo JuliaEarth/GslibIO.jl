@@ -2,7 +2,7 @@
 
 Utilities to read/write *extended* [GSLIB](http://www.gslib.com/gslib_help/format.html) files in Julia.
 
-[![Build Status](https://travis-ci.org/JuliaEarth/GslibIO.jl.svg?branch=master)](https://travis-ci.org/JuliaEarth/GslibIO.jl)
+[![Build Status](https://img.shields.io/github/workflow/status/JuliaEarth/GslibIO.jl/CI)](https://github.com/JuliaEarth/GslibIO.jl/actions)
 [![Coverage Status](https://codecov.io/gh/JuliaEarth/GslibIO.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaEarth/GslibIO.jl)
 
 ## Introduction
