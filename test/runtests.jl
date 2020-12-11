@@ -4,8 +4,13 @@ using GeoStatsBase
 using Test
 
 # environment settings
+isCI = "CI" ∈ keys(ENV)
 islinux = Sys.islinux()
-istravis = "TRAVIS" ∈ keys(ENV)
+visualtests = !isCI || (isCI && islinux)
+if !isCI
+  Pkg.add("Gtk")
+  using Gtk
+end
 datadir = joinpath(@__DIR__,"data")
 
 @testset "GslibIO.jl" begin
