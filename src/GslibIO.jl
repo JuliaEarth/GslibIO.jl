@@ -13,12 +13,12 @@ using GeoStatsBase
 # type aliases
 const Array2or3{T} = Union{AbstractArray{T,2},AbstractArray{T,3}}
 
-# structure for GSLIB metadata
-struct GSLIBMetadata
-  header    # Content of the first line (documentation only)
-  nvars     # An integer with the number of variables (second line)
-  varnames  # The variable names in the following `nvars` lines
-  extrainfo # This corresponds to the extra info in the second line after `nvars`
+# legacy specification of the GSLIB format
+# (see documentation here: http://www.gslib.com/gslib_help/format.html)
+struct LegacySpec
+  header::String          # Content of the first line (documentation only)
+  nvars::Int              # An integer with the number of variables (second line)
+  varnames::Array{Symbol} # The variable names as Symbol in the following `nvars` lines
 end
 
 """
@@ -51,31 +51,19 @@ function load(file::File{format"GSLIB"})
     georef(data, domain)
   end
 end
-"""
-    parse_gslib(filename::AbstractString)
 
-Helper function to parse a standard GSLIB file.
-It returns the data as a matrix `X`, and `metadata` that includes the parsed information.
-"""
-
-function parse_gslib(filename::AbstractString)
+# helper function to parse a legacy GSLIB file
+function parse_legacy(filename::AbstractString)
   open(filename) do fs
-    # header
     header = readline(fs)
     # number of variables is the first integer in the second line (it may contain extra info)
     line = readline(fs)
     linesplit = split(line)
     nvars = parse(Int, linesplit[1])
-    if length(linesplit) > 1
-      loc = findfirst(linesplit[1], line)
-      extrainfo = lstrip(line[loc.stop+1:end]) # extrainfo is kept as it is after `nvars`
-    else
-      extrainfo = "" # empty in case extrainfo is not provided
-    end
     # properties names
-    vars = [strip(readline(fs)) for i in 1:nvars]
+    vars = [Symbol(strip(readline(fs))) for i in 1:nvars]
 
-    metadata = GSLIBMetadata(header, nvars, vars, extrainfo)
+    metadata = LegacySpec(header, nvars, vars)
 
     # read data
     data = readdlm(fs)
@@ -93,19 +81,40 @@ Optionally set the value used for missings `na`.
 function load_legacy(filename::AbstractString, dims::NTuple{3,Int};
                      origin=(0.,0.,0.), spacing=(1.,1.,1.), na=-999)
 
-  # parse the GSLIB file
-  X, metadata = parse_gslib(filename)                     
-
-  vars = [Symbol(v) for v in metadata.varnames]
+  data, metadata = parse_legacy(filename)                     
 
   # handle missing values
-  replace!(X, na=>NaN)
+  replace!(data, na=>NaN)
 
   # create data dictionary
-  data = (; zip(vars, eachcol(X))...)
+  table = (; zip(metadata.varnames, eachcol(data))...)
   domain = RegularGrid(dims, origin, spacing)
 
-  georef(data, domain)
+  georef(table, domain)
+end
+
+"""
+    load_legacy(filename, coordnames, na=-999)
+
+Load legacy GSLIB `filename` into a PointSet using the properties in `coordnames` as coordinates.
+Optionally set the value used for missings `na`.
+"""
+function load_legacy(filename::AbstractString, coordnames=(:x, :y, :z); na=-999)
+  data, metadata = parse_legacy(filename)
+
+  # handle missing values
+  replace!(data, na=>NaN)
+
+  # create data dictionary
+  tableall = Dict(zip(metadata.varnames, eachcol(data)))
+
+  # create data for coordinates
+  coords = transpose(reduce(hcat, [tableall[c] for c in coordnames]))
+  # create table with varnames not in coordnames
+  attrnames = [c for c in metadata.varnames if c ∉  coordnames]
+  table = (; zip(attrnames, [tableall[c] for c in attrnames])...)
+
+  georef(table, PointSet(coords))
 end
 
 """
@@ -185,6 +194,62 @@ function save(file::File{format"GSLIB"}, sdata::AbstractData)
   save(file, collect(eachcol(table)), size(grid),
        origin=origin(grid), spacing=spacing(grid),
        propnames=vars)
+end
+
+# low level function for saving `data` to a legacy GSLIB format using `varnames` as variable names
+function save_legacy(filename::AbstractString, data::AbstractMatrix, varnames::NTuple; 
+                     na=-999.0, header="This file was generated with GslibIO.jl")
+  nrows, nvars = size(data)
+  @assert nvars == length(varnames) "The size of variable names must be equal to the number of variables"
+
+  open(filename, "w") do f
+    # write header
+    write(f, "$header\n")
+
+    write(f, "$nvars\n")
+    for v in varnames
+      write(f, "$v\n")
+    end
+    # handle missing values
+    replace!(data, NaN=>na)
+    writedlm(f, data, ' ')
+  end
+end
+
+# This variant converts `varnames` from an Array to NTuple
+save_legacy(filename::AbstractString, data::AbstractMatrix, varnames::AbstractArray; na=-999.0) =
+    save_legacy(filename, data, NTuple{size(varnames, 1)}(Symbol.(varnames)), na=na)
+
+"""
+    save_legacy(file, sdata)
+
+Save spatial data `sdata` to `filename` using standard GSLIB format. It replaces NaNs with `na` values.
+"""
+function save_legacy(filename::AbstractString, sdata::SpatialData; coordnames=(:x, :y, :z), na=-999.0)
+  table = values(sdata)
+  sdomain = domain(sdata)
+  
+  if isa(sdomain, PointSet) # add coordinates
+    coords = coordinates(sdomain)
+    cdim = size(coords, 1)
+    @assert cdim <= length(coordnames) "The size of coordinate names must be equal or greater to the coordinate dimension"
+    varnames = cat([String(v) for v in coordnames[1:cdim]], names(table), dims=1)
+
+    println("table size: ", size(Array(table)))
+    println("coords size: ", size(coords))
+
+    data = hcat(transpose(coords), Array(table))
+
+    println("varnames: ", varnames)
+    println("data size: ", size(data))
+  elseif isa(sdomain, RegularGrid)
+    varnames = names(table)
+    data = Array(table)
+  else
+    error("Only PointSet and RegularGrid can be saved to the legacy GSLIB format")
+  end  
+
+  save_legacy(filename, data, varnames, na=na)
 end
 
 end
