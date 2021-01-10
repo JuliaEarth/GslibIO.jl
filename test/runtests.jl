@@ -1,7 +1,7 @@
 using FileIO
 using GslibIO
 using GeoStatsBase
-using Test
+using Pkg, Test, Random
 
 # environment settings
 isCI = "CI" ∈ keys(ENV)
@@ -21,18 +21,18 @@ datadir = joinpath(@__DIR__,"data")
     props2D = rand(10,10), rand(10,10)
 
     for (prop1, prop2) in [props2D, props3D]
-      save(fname, [prop1,prop2])
-      grid = load(fname)
+      FileIO.save(fname, [prop1,prop2])
+      grid = FileIO.load(fname)
       @test grid[:prop1] == vec(prop1)
       @test grid[:prop2] == vec(prop2)
 
-      save(fname, grid)
-      grid = load(fname)
+      FileIO.save(fname, grid)
+      grid = FileIO.load(fname)
       @test grid[:prop1] == vec(prop1)
       @test grid[:prop2] == vec(prop2)
 
-      save(fname, prop1)
-      grid = load(fname)
+      FileIO.save(fname, prop1)
+      grid = FileIO.load(fname)
       @test grid[:prop1] == vec(prop1)
     end
 
