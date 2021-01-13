@@ -13,6 +13,14 @@ using GeoStatsBase
 # type aliases
 const Array2or3{T} = Union{AbstractArray{T,2},AbstractArray{T,3}}
 
+# legacy specification of the GSLIB format
+# (see documentation here: http://www.gslib.com/gslib_help/format.html)
+struct LegacySpec
+  header::String           # Content of the first line (documentation only)
+  nvars::Int               # An integer with the number of variables (first integert in the second line)
+  varnames::Vector{Symbol} # The variable names as Symbol in the following `nvars` lines
+end
+
 """
     load(file)
 
@@ -44,6 +52,25 @@ function load(file::File{format"GSLIB"})
   end
 end
 
+# helper function to parse a legacy GSLIB file
+function parse_legacy(filename::AbstractString)
+  open(filename) do fs
+    header = readline(fs)
+    # the second line contains the number of variables (the first integer) and it may contain extra info (comments)
+    linesplit = split(readline(fs))
+    nvars = parse(Int, linesplit[1])
+    # properties names
+    vars = [Symbol(strip(readline(fs))) for i in 1:nvars]
+
+    metadata = LegacySpec(header, nvars, vars)
+
+    # read data
+    data = readdlm(fs)
+
+    metadata, data
+  end
+end
+
 """
     load_legacy(filename, dims; origin=(0.,0.,0.), spacing=(1.,1.,1.), na=-999)
 
@@ -52,28 +79,17 @@ Optionally set the value used for missings `na`.
 """
 function load_legacy(filename::AbstractString, dims::NTuple{3,Int};
                      origin=(0.,0.,0.), spacing=(1.,1.,1.), na=-999)
-  open(filename) do fs
-    # skip header
-    readline(fs)
+  metadata, data = parse_legacy(filename)                     
 
-    # number of properties
-    nvars = parse.(Int, readline(fs))
+  # handle missing values
+  replace!(data, na=>NaN)
 
-    # properties names
-    vars = [Symbol(readline(fs)) for i in 1:nvars]
+  # create data dictionary
+  table = (; zip(metadata.varnames, eachcol(data))...)
+  domain = RegularGrid(dims, origin, spacing)
 
-    # read property values
-    X = readdlm(fs)
+  georef(table, domain)
 
-    # handle missing values
-    replace!(X, na=>NaN)
-
-    # create data dictionary
-    data = (; zip(vars, eachcol(X))...)
-    domain = RegularGrid(dims, origin, spacing)
-
-    georef(data, domain)
-  end
 end
 
 """
