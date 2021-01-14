@@ -93,6 +93,31 @@ function load_legacy(filename::AbstractString, dims::NTuple{3,Int};
 end
 
 """
+    load_legacy(filename, coordnames, na=-999)
+
+Load legacy GSLIB `filename` into a PointSet using the properties in `coordnames` as coordinates.
+Optionally set the value used for missings `na`.
+"""
+function load_legacy(filename::AbstractString, coordnames=(:x, :y, :z); na=-999)
+  metadata, data = parse_legacy(filename)
+
+  # handle missing values
+  replace!(data, na=>NaN)
+
+  # create temporary data dictionary to split later
+  # coordinates and attributes
+  tableall = Dict(zip(metadata.varnames, eachcol(data)))
+
+  # create data for coordinates
+  coords = transpose(reduce(hcat, [tableall[c] for c in coordnames]))
+  # create table with varnames not in coordnames
+  attrnames = [c for c in metadata.varnames if c ∉  coordnames]
+  table = (; zip(attrnames, [tableall[c] for c in attrnames])...)
+
+  georef(table, PointSet(coords))
+end
+
+"""
     save(file, properties, dims; [optional parameters])
 
 Save 1D `properties` to `file`, which originally had size `dims`.
