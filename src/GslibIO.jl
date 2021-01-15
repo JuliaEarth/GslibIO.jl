@@ -103,15 +103,25 @@ function load_legacy(filename::AbstractString, coordnames=(:x, :y, :z); na=-999)
   # handle missing values
   replace!(dataspec.data, na=>NaN)
 
-  # create temporary data dictionary to split later
-  # coordinates and attributes
-  tableall = Dict(zip(dataspec.varnames, eachcol(dataspec.data)))
+  # we need to identify and separate coordinates and actual attributes 
+  # from the parsed variables
 
-  # create data for coordinates
-  coords = transpose(reduce(hcat, [tableall[c] for c in coordnames]))
+  # find the position of each `coordnames` in `dataspec.varnames`
+  coordpos = []
+  for (i, coordname) in enumerate(coordnames)
+    pos = findall(x -> x == coordname, dataspec.varnames)
+    if isempty(pos)
+      @error "The coordinate name '$coordname' could not be found in the file"
+    else
+      append!(coordpos, pos)
+    end
+  end
+  coords = transpose(dataspec.data[:, coordpos])
+
   # create table with varnames not in coordnames
-  attrnames = [c for c in metadata.varnames if c ∉  coordnames]
-  table = (; zip(attrnames, [tableall[c] for c in attrnames])...)
+  attrpos = [i for i in 1:length(dataspec.varnames) if i ∉ coordpos]
+  attrnames = dataspec.varnames[attrpos]
+  table = (; zip(attrnames, eachcol(dataspec.data[:, attrpos]))...)
 
   georef(table, PointSet(coords))
 end
