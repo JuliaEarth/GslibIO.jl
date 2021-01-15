@@ -88,7 +88,6 @@ function load_legacy(filename::AbstractString, dims::NTuple{3,Int};
   domain = RegularGrid(dims, origin, spacing)
 
   georef(table, domain)
-
 end
 
 """
