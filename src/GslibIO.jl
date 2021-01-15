@@ -19,6 +19,7 @@ struct LegacySpec
   header::String           # Content of the first line (documentation only)
   nvars::Int               # An integer with the number of variables (first integer in the second line)
   varnames::Vector{Symbol} # The variable names as Symbol in the following `nvars` lines
+  data:: AbstractMatrix    # The data (a column represents one variable). It should be size of (N, `nvars`)
 end
 
 """
@@ -62,12 +63,10 @@ function parse_legacy(filename::AbstractString)
     nvars = parse(Int, linesplit[1])
     varnames = [Symbol(strip(readline(fs))) for i in 1:nvars]
 
-    metadata = LegacySpec(header, nvars, varnames)
-
-    # read data
+    # read remaning content as data
     data = readdlm(fs)
 
-    metadata, data
+    LegacySpec(header, nvars, varnames, data)
   end
 end
 
@@ -79,13 +78,13 @@ Optionally set the value used for missings `na`.
 """
 function load_legacy(filename::AbstractString, dims::NTuple{3,Int};
                      origin=(0.,0.,0.), spacing=(1.,1.,1.), na=-999)
-  metadata, data = parse_legacy(filename)                     
+  dataspec = parse_legacy(filename)                     
 
   # handle missing values
-  replace!(data, na=>NaN)
+  replace!(dataspec.data, na=>NaN)
 
   # create data dictionary
-  table = (; zip(metadata.varnames, eachcol(data))...)
+  table = (; zip(dataspec.varnames, eachcol(dataspec.data))...)
   domain = RegularGrid(dims, origin, spacing)
 
   georef(table, domain)
@@ -99,14 +98,14 @@ Load legacy GSLIB `filename` into a PointSet using the properties in `coordnames
 Optionally set the value used for missings `na`.
 """
 function load_legacy(filename::AbstractString, coordnames=(:x, :y, :z); na=-999)
-  metadata, data = parse_legacy(filename)
+  dataspec = parse_legacy(filename)
 
   # handle missing values
-  replace!(data, na=>NaN)
+  replace!(dataspec.data, na=>NaN)
 
   # create temporary data dictionary to split later
   # coordinates and attributes
-  tableall = Dict(zip(metadata.varnames, eachcol(data)))
+  tableall = Dict(zip(dataspec.varnames, eachcol(dataspec.data)))
 
   # create data for coordinates
   coords = transpose(reduce(hcat, [tableall[c] for c in coordnames]))
