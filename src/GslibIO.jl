@@ -15,11 +15,13 @@ const Array2or3{T} = Union{AbstractArray{T,2},AbstractArray{T,3}}
 
 # legacy specification of the GSLIB format
 # (see documentation here: http://www.gslib.com/gslib_help/format.html)
+# Note that in this context variables can be
+# actual attributes as well as coordinates
 struct LegacySpec
   header::String           # Content of the first line (documentation only)
   nvars::Int               # An integer with the number of variables (first integer in the second line)
   varnames::Vector{Symbol} # The variable names as Symbol in the following `nvars` lines
-  data:: AbstractMatrix    # The data (a column represents one variable). It should be size of (N, `nvars`)
+  data::AbstractMatrix    # The data (a column represents one variable). It should be size of (N, `nvars`)
 end
 
 """
@@ -59,8 +61,8 @@ function parse_legacy(filename::AbstractString)
     header = readline(fs)
     # the second line contains the number of variables (the first integer)
     # and it may contain extra info (comments), which will be ignored
-    linesplit = split(readline(fs))
-    nvars = parse(Int, linesplit[1])
+    words = split(readline(fs))
+    nvars = parse(Int, words[1])
     varnames = [Symbol(strip(readline(fs))) for i in 1:nvars]
 
     # read remaning content as data
