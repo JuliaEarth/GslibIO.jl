@@ -80,13 +80,13 @@ Optionally set the value used for missings `na`.
 """
 function load_legacy(filename::AbstractString, dims::NTuple{3,Int};
                      origin=(0.,0.,0.), spacing=(1.,1.,1.), na=-999)
-  dataspec = parse_legacy(filename)                     
+  spec = parse_legacy(filename)                     
 
   # handle missing values
-  replace!(dataspec.data, na=>NaN)
+  replace!(spec.data, na=>NaN)
 
   # create data dictionary
-  table = (; zip(dataspec.varnames, eachcol(dataspec.data))...)
+  table = (; zip(spec.varnames, eachcol(spec.data))...)
   domain = RegularGrid(dims, origin, spacing)
 
   georef(table, domain)
@@ -99,25 +99,25 @@ Load legacy GSLIB `filename` into a PointSet using the properties in `coordnames
 Optionally set the value used for missings `na`.
 """
 function load_legacy(filename::AbstractString, coordnames=(:x, :y, :z); na=-999)
-  dataspec = parse_legacy(filename)
+  spec = parse_legacy(filename)
 
   # handle missing values
-  replace!(dataspec.data, na=>NaN)
+  replace!(spec.data, na=>NaN)
 
   # we need to identify and separate coordinates and actual attributes 
   # from the parsed variables
 
   # find the position of each `coordnames` in `dataspec.varnames`
-  coordinds = indexin(dataspec.varnames, collect(coordnames))
+  coordinds = indexin(spec.varnames, collect(coordnames))
   if count(something, coordinds) != length(coordnames)
       @error "Some coordinate names could not be found in the file"
   end
-  coords = transpose(dataspec.data[:, coordinds])
+  coords = transpose(spec.data[:, coordinds])
 
   # create table with varnames not in coordnames
-  attrpos = setdiff(1:length(dataspec.varnames), coordinds)
-  attrnames = dataspec.varnames[attrpos]
-  table = (; zip(attrnames, eachcol(dataspec.data[:, attrpos]))...)
+  attrpos = setdiff(1:length(spec.varnames), coordinds)
+  attrnames = spec.varnames[attrpos]
+  table = (; zip(attrnames, eachcol(spec.data[:, attrpos]))...)
 
   georef(table, PointSet(coords))
 end
