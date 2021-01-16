@@ -108,19 +108,14 @@ function load_legacy(filename::AbstractString, coordnames=(:x, :y, :z); na=-999)
   # from the parsed variables
 
   # find the position of each `coordnames` in `dataspec.varnames`
-  coordpos = []
-  for (i, coordname) in enumerate(coordnames)
-    pos = findall(x -> x == coordname, dataspec.varnames)
-    if isempty(pos)
-      @error "The coordinate name '$coordname' could not be found in the file"
-    else
-      append!(coordpos, pos)
-    end
+  coordinds = indexin(dataspec.varnames, collect(coordnames))
+  if count(something, coordinds) != length(coordnames)
+      @error "Some coordinate names could not be found in the file"
   end
-  coords = transpose(dataspec.data[:, coordpos])
+  coords = transpose(dataspec.data[:, coordinds])
 
   # create table with varnames not in coordnames
-  attrpos = [i for i in 1:length(dataspec.varnames) if i ∉ coordpos]
+  attrpos = setdiff(1:length(dataspec.varnames), coordinds)
   attrnames = dataspec.varnames[attrpos]
   table = (; zip(attrnames, eachcol(dataspec.data[:, attrpos]))...)
 
