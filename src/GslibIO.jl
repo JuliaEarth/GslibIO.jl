@@ -19,9 +19,8 @@ const Array2or3{T} = Union{AbstractArray{T,2},AbstractArray{T,3}}
 # actual attributes as well as coordinates
 struct LegacySpec
   header::String           # Content of the first line (documentation only)
-  nvars::Int               # An integer with the number of variables (first integer in the second line)
-  varnames::Vector{Symbol} # The variable names as Symbol in the following `nvars` lines
-  data::AbstractMatrix    # The data (a column represents one variable). It should be size of (N, `nvars`)
+  varnames::Vector{Symbol} # The variable names as Symbol indicated in the file
+  data::Matrix{Float64}    # The data (a column represents one variable)
 end
 
 """
@@ -58,7 +57,9 @@ end
 # helper function to parse a legacy GSLIB file
 function parse_legacy(filename::AbstractString)
   open(filename) do fs
+    # first line is a free header
     header = readline(fs)
+
     # the second line contains the number of variables (the first integer)
     # and it may contain extra info (comments), which will be ignored
     words = split(readline(fs))
@@ -68,7 +69,7 @@ function parse_legacy(filename::AbstractString)
     # read remaning content as data
     data = readdlm(fs)
 
-    LegacySpec(header, nvars, varnames, data)
+    LegacySpec(header, varnames, data)
   end
 end
 
