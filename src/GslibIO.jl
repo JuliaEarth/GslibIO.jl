@@ -16,9 +16,9 @@ const Array2or3{T} = Union{AbstractArray{T,2},AbstractArray{T,3}}
 # Legacy specification of the GSLIB format: http://www.gslib.com/gslib_help/format.html
 # Note that in this context variables can be actual attributes as well as names of coordinates
 struct LegacySpec
-  header::String           # Content of the first line (documentation only)
-  varnames::Vector{Symbol} # The variable names as Symbol indicated in the file
-  data::Matrix{Float64}    # The data (a column represents one variable)
+  header::String                     # first line is a header in free format
+  varnames::Vector{Symbol} # variable names, one per line
+  data::Matrix{Float64}          # data matrix with variables as columns
 end
 
 """
