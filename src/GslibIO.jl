@@ -111,7 +111,7 @@ function load_legacy(filename::AbstractString, coordnames=(:x, :y, :z); na=-999)
   if count(something, coordinds) != length(coordnames)
       @error "Some coordinate names could not be found in the file"
   end
-  coords = transpose(spec.data[:, coordinds])
+  coords = spec.data[:,coordinds]'
 
   # create table with varnames not in coordnames
   attrpos = setdiff(1:length(spec.varnames), coordinds)
