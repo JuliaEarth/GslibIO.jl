@@ -114,9 +114,9 @@ function load_legacy(filename::AbstractString, coordnames=(:x, :y, :z); na=-999)
   coords = spec.data[:,coordinds]'
 
   # create table with varnames not in coordnames
-  attrpos = setdiff(1:length(spec.varnames), coordinds)
-  attrnames = spec.varnames[attrpos]
-  table = (; zip(attrnames, eachcol(spec.data[:, attrpos]))...)
+  attrinds = setdiff(1:length(spec.varnames), coordinds)
+  attrnames = spec.varnames[attrinds]
+  table = (; zip(attrnames, eachcol(spec.data[:,attrinds]))...)
 
   georef(table, PointSet(coords))
 end
