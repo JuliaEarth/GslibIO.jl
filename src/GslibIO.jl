@@ -200,4 +200,58 @@ function save(file::File{format"GSLIB"}, sdata::AbstractData)
        propnames=vars)
 end
 
+# low level function for saving `data` to a legacy GSLIB format using `varnames` as variable names
+function save_legacy(filename::AbstractString, data::AbstractMatrix, varnames::NTuple; 
+                     na=-999.0, header="This file was generated with GslibIO.jl")
+  nvars = size(data, 2)
+  @assert nvars == length(varnames) "The length of variable names must be equal to the number of variables"
+
+  open(filename, "w") do f
+    write(f, "$header\n")
+
+    write(f, "$nvars\n")
+    for v in varnames
+      write(f, "$v\n")
+    end
+
+    # handle missing values
+    replace!(data, NaN=>na)
+
+    writedlm(f, data, ' ')
+  end
+end
+
+"""
+    save_legacy(file, sdata)
+
+Save spatial data `sdata` to `filename` using standard GSLIB format. It replaces NaNs with `na` values
+and it uses `coordnames` as the given variable name to coordinates
+"""
+function save_legacy(filename::AbstractString, sdata::SpatialData; coordnames=(:x, :y, :z), na=-999.0)
+  table = values(sdata)
+  sdomain = domain(sdata)
+  
+  if isa(sdomain, PointSet) 
+    # add `coordinates` to data and `coordnames` to `varnames`
+    coords = coordinates(sdomain)
+    cdim = size(coords, 1)
+    @assert cdim <= length(coordnames) "The length of coordinate names must be equal or greater than the coordinate dimension"
+
+    varnames = cat([String(v) for v in coordnames[1:cdim]], names(table), dims=1)
+    data = hcat(transpose(coords), Array(table))
+  elseif isa(sdomain, RegularGrid)
+    # a regular grid does not need to save coordinates
+    varnames = names(table)
+    data = Array(table)
+  else
+    error("Only PointSet and RegularGrid can be saved to the legacy GSLIB format")
+  end  
+
+  save_legacy(filename, data, varnames, na=na)
+end
+
+# This variant converts `varnames` from an Array to NTuple
+save_legacy(filename::AbstractString, data::AbstractMatrix, varnames::AbstractArray; na=-999.0) =
+    save_legacy(filename, data, NTuple{size(varnames, 1)}(Symbol.(varnames)), na=na)
+
 end
