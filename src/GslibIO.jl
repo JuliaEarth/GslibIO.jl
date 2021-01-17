@@ -13,10 +13,8 @@ using GeoStatsBase
 # type aliases
 const Array2or3{T} = Union{AbstractArray{T,2},AbstractArray{T,3}}
 
-# legacy specification of the GSLIB format
-# (see documentation here: http://www.gslib.com/gslib_help/format.html)
-# Note that in this context variables can be
-# actual attributes as well as coordinates
+# Legacy specification of the GSLIB format: http://www.gslib.com/gslib_help/format.html
+# Note that in this context variables can be actual attributes as well as names of coordinates
 struct LegacySpec
   header::String           # Content of the first line (documentation only)
   varnames::Vector{Symbol} # The variable names as Symbol indicated in the file
