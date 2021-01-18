@@ -100,6 +100,8 @@ Optionally set the value used for missings `na`.
 function load_legacy(filename::AbstractString, coordnames=(:x, :y, :z); na=-999)
   spec = parse_legacy(filename)
 
+  @assert coordnames ⊆ spec.varnames "invalid coordinate names"
+
   # handle missing values
   replace!(spec.data, na=>NaN)
 
@@ -107,8 +109,8 @@ function load_legacy(filename::AbstractString, coordnames=(:x, :y, :z); na=-999)
   # from the parsed variables
 
   # find the position of each `coordnames` in `dataspec.varnames`
-  coordinds = indexin(spec.varnames, collect(coordnames))
-  if count(something, coordinds) != length(coordnames)
+  coordinds = indexin(collect(coordnames), spec.varnames)
+  if any(isnothing.(coordinds))
       @error "Some coordinate names could not be found in the file"
   end
   coords = spec.data[:,coordinds]'
