@@ -39,7 +39,7 @@ datadir = joinpath(@__DIR__,"data")
     rm(fname)
   end
 
-  @testset "Legacy" begin
+  @testset "LegacyGrid" begin
     fname = joinpath(datadir,"legacy_grid.gslib")
 
     sdata = GslibIO.load_legacy(fname, (2,2,2))
@@ -53,4 +53,31 @@ datadir = joinpath(@__DIR__,"data")
     @test isequal(lit, [1,2,3,4,5,6,7,8])
     @test isequal(sat, [0.8,0.7,0.8,0.7,0.8,0.7,0.8,NaN])
   end
+
+  @testset "LegacyPointSet" begin
+    fname = joinpath(datadir,"legacy_pset.gslib")
+
+    coordnames = (:East, :North, :Elevation)
+    sdata = GslibIO.load_legacy(fname, coordnames)
+    cdata = coordinates(sdata)
+    @test size(cdata) == (3, 4)
+    @test nelms(sdata) == 4
+    por = sdata[:Porosity]
+    @test isequal(por, [0.1, 0.2, 0.3, 0.4])
+    @test isequal(cdata[1, :], [10.0, 20.0, 30.0, 40.0])
+    @test isequal(cdata[2, :], [11.0, 21.0, 31.0, 41.0])
+    @test isequal(cdata[3, :], [12.0, 22.0, 32.0, 42.0])
+
+    # test when coordnames are not in varnames
+    coordnames = (:x, :y, :Elevation)
+    @test_throws AssertionError GslibIO.load_legacy(fname, coordnames)
+  end
+
+  @testset "LegacyInvalid" begin
+    fname = joinpath(datadir,"legacy_invalid.gslib")
+
+    coordnames = (:x, :y, :z)
+    @test_throws MethodError GslibIO.load_legacy(fname, coordnames)
+  end
+
 end
