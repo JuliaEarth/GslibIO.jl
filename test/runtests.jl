@@ -40,7 +40,7 @@ datadir = joinpath(@__DIR__,"data")
   end
 
   @testset "Legacy" begin
-    fname = joinpath(datadir,"legacy.gslib")
+    fname = joinpath(datadir,"legacy_grid.gslib")
 
     sdata = GslibIO.load_legacy(fname, (2,2,2))
     @test size(domain(sdata)) == (2,2,2)
