@@ -100,7 +100,7 @@ Optionally set the value used for missings `na`.
 function load_legacy(filename::AbstractString, coordnames=(:x, :y, :z); na=-999)
   spec = parse_legacy(filename)
 
-  @assert coordnames ⊂ spec.varnames "invalid coordinate names"
+  @assert issubset(coordnames, spec.varnames) "invalid coordinate names"
 
   # handle missing values
   replace!(spec.data, na=>NaN)
