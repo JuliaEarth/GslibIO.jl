@@ -241,7 +241,7 @@ function save_legacy(filename::AbstractString, sdata::SpatialData; coordnames=(:
   elseif isa(sdomain, RegularGrid)
     # a regular grid does not need to save coordinates
     varnames = names(table)
-    data = Array(table)
+    data = Matrix(table)
   else
     error("Only PointSet and RegularGrid can be saved to the legacy GSLIB format")
   end  
