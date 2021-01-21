@@ -197,8 +197,7 @@ function save(file::File{format"GSLIB"}, sdata::AbstractData)
 end
 
 # low level function for saving `data` to a legacy GSLIB format using `varnames` as variable names
-function save_legacy(filename::AbstractString, data::AbstractMatrix, varnames::NTuple; 
-                     na=-999.0, header="# This file was generated with GslibIO.jl")
+function save_legacy(filename::AbstractString, data::AbstractMatrix, varnames::NTuple, header::AbstractString, na)
   @assert size(data, 2) == length(varnames) "Invalid data for the specified variable names"
   nvars = size(data, 2)
 
@@ -223,7 +222,8 @@ end
 Save spatial data `sdata` to `filename` using standard GSLIB format. It replaces NaNs with `na` values
 and it uses `coordnames` as the given variable name to coordinates
 """
-function save_legacy(filename::AbstractString, sdata::SpatialData; coordnames=(:x, :y, :z), na=-999.0)
+function save_legacy(filename::AbstractString, sdata::AbstractData; 
+                     coordnames=(:x, :y, :z), na=-999.0, header="# This file was generated with GslibIO.jl")
   table = values(sdata)
   sdomain = domain(sdata)
   
@@ -235,7 +235,7 @@ function save_legacy(filename::AbstractString, sdata::SpatialData; coordnames=(:
 
     varnames = cat([String(v) for v in coordnames[1:cdim]], names(table), dims=1)
     data = hcat(transpose(coords), Array(table))
-  elseif isa(sdomain, RegularGrid)
+  elseif sdomain isa RegularGrid
     # a regular grid does not need to save coordinates
     varnames = names(table)
     data = Matrix(table)
@@ -243,11 +243,11 @@ function save_legacy(filename::AbstractString, sdata::SpatialData; coordnames=(:
     error("Only PointSet and RegularGrid can be saved to the legacy GSLIB format")
   end  
 
-  save_legacy(filename, data, varnames, na=na)
+  save_legacy(filename, data, varnames, header, na)
 end
 
 # This variant converts `varnames` from an Array to NTuple
-save_legacy(filename::AbstractString, data::AbstractMatrix, varnames::AbstractArray; na=-999.0) =
-    save_legacy(filename, data, NTuple{size(varnames, 1)}(Symbol.(varnames)), na=na)
+save_legacy(filename::AbstractString, data::AbstractMatrix, varnames::AbstractArray, header, na) =
+    save_legacy(filename, data, NTuple{size(varnames, 1)}(Symbol.(varnames)), header, na)
 
 end
