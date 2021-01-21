@@ -198,9 +198,9 @@ end
 
 # low level function for saving `data` to a legacy GSLIB format using `varnames` as variable names
 function save_legacy(filename::AbstractString, data::AbstractMatrix, varnames::NTuple; 
-                     na=-999.0, header="This file was generated with GslibIO.jl")
+                     na=-999.0, header="# This file was generated with GslibIO.jl")
+  @assert size(data, 2) == length(varnames) "Invalid data for the specified variable names"
   nvars = size(data, 2)
-  @assert nvars == length(varnames) "The length of variable names must be equal to the number of variables"
 
   open(filename, "w") do f
     write(f, "$header\n")
@@ -227,7 +227,7 @@ function save_legacy(filename::AbstractString, sdata::SpatialData; coordnames=(:
   table = values(sdata)
   sdomain = domain(sdata)
   
-  if isa(sdomain, PointSet) 
+  if sdomain isa PointSet
     # add `coordinates` to data and `coordnames` to `varnames`
     coords = coordinates(sdomain)
     cdim = size(coords, 1)
@@ -238,7 +238,7 @@ function save_legacy(filename::AbstractString, sdata::SpatialData; coordnames=(:
   elseif isa(sdomain, RegularGrid)
     # a regular grid does not need to save coordinates
     varnames = names(table)
-    data = Array(table)
+    data = Matrix(table)
   else
     error("Only PointSet and RegularGrid can be saved to the legacy GSLIB format")
   end  
