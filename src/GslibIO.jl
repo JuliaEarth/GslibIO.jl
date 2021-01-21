@@ -230,7 +230,7 @@ function save_legacy(filename::AbstractString, sdata::SpatialData; coordnames=(:
   table = values(sdata)
   sdomain = domain(sdata)
   
-  if isa(sdomain, PointSet) 
+  if sdomain isa PointSet
     # add `coordinates` to data and `coordnames` to `varnames`
     coords = coordinates(sdomain)
     cdim = size(coords, 1)
