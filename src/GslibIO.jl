@@ -202,8 +202,8 @@ end
 # low level function for saving `data` to a legacy GSLIB format using `varnames` as variable names
 function save_legacy(filename::AbstractString, data::AbstractMatrix, varnames::NTuple; 
                      na=-999.0, header="# This file was generated with GslibIO.jl")
+  @assert size(data, 2) == length(varnames) "Invalid data for the specified variable names"
   nvars = size(data, 2)
-  @assert nvars == length(varnames) "The length of variable names must be equal to the number of variables"
 
   open(filename, "w") do f
     write(f, "$header\n")
