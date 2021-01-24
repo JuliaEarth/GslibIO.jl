@@ -243,9 +243,9 @@ function save_legacy(filename::AbstractString, sdata::AbstractData;
     data = Matrix(table)
   else
     @error "can only save data defined on point sets or regular grids"
-  end  
+  end
 
-  save_legacy(filename, data, varnames, header, na)
+  save_legacy(filename, data, NTuple{size(varnames, 1)}(Symbol.(varnames)), header, na)
 end
 
 end
