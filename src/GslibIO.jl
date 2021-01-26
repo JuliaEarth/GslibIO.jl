@@ -62,6 +62,7 @@ function parse_legacy(filename::AbstractString)
     # and it may contain extra info (comments), which will be ignored
     words = split(readline(fs))
     nvars = parse(Int, words[1])
+
     # variable names, one per line
     varnames = [Symbol(strip(readline(fs))) for i in 1:nvars]
 
@@ -199,7 +200,7 @@ end
 
 # low level function for saving `data` to a legacy GSLIB format using `varnames` as variable names
 function save_legacy(filename::AbstractString, data::AbstractMatrix,
-                    varnames::NTuple, header::AbstractString, na)
+                     varnames::NTuple, header::AbstractString, na)
   @assert size(data, 2) == length(varnames) "Invalid data for the specified variable names"
   nvars = size(data, 2)
 
@@ -220,7 +221,7 @@ end
 """
     save_legacy(file, sdata)
 
-Save spatial data `sdata` to `filename` using standard GSLIB format. It replaces NaNs with `na` values
+Save spatial data `sdata` to `filename` using legacy GSLIB format. It replaces NaNs with `na` values
 and it uses `coordnames` as the given variable name to coordinates
 """
 function save_legacy(filename::AbstractString, sdata::AbstractData; 
@@ -232,20 +233,20 @@ function save_legacy(filename::AbstractString, sdata::AbstractData;
   if sdomain isa PointSet
     # add coordinates to data and coordnames to varnames
     coords = coordinates(sdomain)
-    cdim = size(coords, 1)
-    @assert cdim <= length(coordnames) "The length of coordinate names must be equal or greater than the coordinate dimension"
+    cdim = ncoords(sdomain)
+    @assert cdim == length(coordnames) "The length of coordinate names must be equal to the coordinate dimension"
 
-    varnames = cat([String(v) for v in coordnames[1:cdim]], names(table), dims=1)
-    data = hcat(transpose(coords), Array(table))
+    varnames = [coordnames...; propertynames(table)]
+    data = [coords' Matrix(table)]
   elseif sdomain isa RegularGrid
     # a regular grid does not need to save coordinates
-    varnames = names(table)
+    varnames = propertynames(table)
     data = Matrix(table)
   else
     @error "can only save data defined on point sets or regular grids"
   end
 
-  save_legacy(filename, data, NTuple{size(varnames, 1)}(Symbol.(varnames)), header, na)
+  save_legacy(filename, data, Tuple(varnames), header, na)
 end
 
 end
