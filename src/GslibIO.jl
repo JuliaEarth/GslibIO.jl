@@ -198,7 +198,7 @@ function save(file::File{format"GSLIB"}, sdata::AbstractData)
        propnames=vars)
 end
 
-# low level function for saving `data` to a legacy GSLIB format using `varnames` as variable names
+# low level function for saving data to a legacy GSLIB format
 function save_legacy(filename::AbstractString, data::AbstractMatrix,
                      varnames::NTuple, header::AbstractString, na)
   @assert size(data, 2) == length(varnames) "Invalid data for the specified variable names"
@@ -213,20 +213,18 @@ function save_legacy(filename::AbstractString, data::AbstractMatrix,
     for v in varnames
       write(f, "$v\n")
     end
-
     writedlm(f, datana, ' ')
   end
 end
 
 """
-    save_legacy(file, sdata)
+    save_legacy(filename, sdata)
 
-Save spatial data `sdata` to `filename` using legacy GSLIB format. It replaces NaNs with `na` values
-and it uses `coordnames` as the given variable name to coordinates
+Save spatial data `sdata` to `filename` in legacy GSLIB format. Optionally, specify
+the `coordnames`, the `header` and the value `na` used to represent missing entries.
 """
-function save_legacy(filename::AbstractString, sdata::AbstractData; 
-                     coordnames=(:x, :y, :z), header="# This file was generated with GslibIO.jl",
-                     na=-999.0)
+function save_legacy(filename::AbstractString, sdata::AbstractData; coordnames=(:x, :y, :z),
+                     header="# This file was generated with GslibIO.jl", na=-999.0)
   table = values(sdata)
   sdomain = domain(sdata)
   
