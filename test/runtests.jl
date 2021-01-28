@@ -77,15 +77,12 @@ datadir = joinpath(@__DIR__,"data")
     @test isequal(sat, [0.8,0.7,0.8,0.7,0.8,0.7,0.8,NaN])
 
     # test if storing/leading recovers data
+    # to simplify the test, the NaN value is replaced with 99.0
+    sdata[Symbol("Water Saturation")][8] = 99.0
     fname = tempname()*".gslib"
     GslibIO.save_legacy(fname, sdata)
-    sdatarestored = GslibIO.load_legacy(fname, (2,2,2))
-    porrestored = sdatarestored[:Porosity]
-    litrestored = sdatarestored[:Lithology]
-    satrestored = sdatarestored[Symbol("Water Saturation")]
-    @test isequal(por, porrestored)
-    @test isequal(lit, litrestored)
-    @test isequal(sat, satrestored)
+    ndata = GslibIO.load_legacy(fname, (2,2,2))
+    @test sdata == ndata
     rm(fname)
   end
 
@@ -110,13 +107,8 @@ datadir = joinpath(@__DIR__,"data")
     # test if storing/leading recovers data
     fname = tempname()*".gslib"
     GslibIO.save_legacy(fname, sdata, coordnames=coordnames)
-    sdatarestored = GslibIO.load_legacy(fname, coordnames)
-    cdatarestored = coordinates(sdatarestored)
-    porrestored = sdatarestored[:Porosity]
-    @test isequal(por, porrestored)
-    for i=1:3
-      @test isequal(cdata[i, :], cdatarestored[i, :])
-    end
+    ndata = GslibIO.load_legacy(fname, coordnames)
+    @test sdata == ndata
     rm(fname)
   end
 
