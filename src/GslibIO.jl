@@ -205,7 +205,7 @@ function save_legacy(filename::AbstractString, data::AbstractMatrix,
   nvars = size(data, 2)
 
   # handle missing values
-  datana = replace!(data, NaN=>na)
+  datana = replace(data, NaN=>na)
 
   open(filename, "w") do f
     write(f, "$header\n")
@@ -231,8 +231,7 @@ function save_legacy(filename::AbstractString, sdata::AbstractData; coordnames=(
   if sdomain isa PointSet
     # add coordinates to data and coordnames to varnames
     coords = coordinates(sdomain)
-    cdim = ncoords(sdomain)
-    @assert cdim == length(coordnames) "The length of coordinate names must be equal to the coordinate dimension"
+    @assert ncoords(sdomain) == length(coordnames) "The length of coordinate names must be equal to the coordinate dimension"
 
     varnames = [coordnames...; propertynames(table)]
     data = [coords' Matrix(table)]
