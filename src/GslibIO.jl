@@ -201,7 +201,7 @@ end
 # low level function for saving data to a legacy GSLIB format
 function save_legacy(filename::AbstractString, data::AbstractMatrix,
                      varnames::NTuple, header::AbstractString, na)
-  @assert size(data, 2) == length(varnames) "Invalid data for the specified variable names"
+  @assert size(data, 2) == length(varnames) "invalid data for the specified variable names"
   nvars = size(data, 2)
 
   # handle missing values
@@ -231,7 +231,7 @@ function save_legacy(filename::AbstractString, sdata::AbstractData; coordnames=(
   if sdomain isa PointSet
     # add coordinates to data and coordnames to varnames
     coords = coordinates(sdomain)
-    @assert ncoords(sdomain) == length(coordnames) "The length of coordinate names must be equal to the coordinate dimension"
+    @assert ncoords(sdomain) == length(coordnames) "the length of coordinate names must be equal to the coordinate dimension"
     varnames = [coordnames...; propertynames(table)]
     data = [coords' Matrix(table)]
   elseif sdomain isa RegularGrid
