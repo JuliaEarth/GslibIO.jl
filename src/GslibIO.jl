@@ -232,7 +232,6 @@ function save_legacy(filename::AbstractString, sdata::AbstractData; coordnames=(
     # add coordinates to data and coordnames to varnames
     coords = coordinates(sdomain)
     @assert ncoords(sdomain) == length(coordnames) "The length of coordinate names must be equal to the coordinate dimension"
-
     varnames = [coordnames...; propertynames(table)]
     data = [coords' Matrix(table)]
   elseif sdomain isa RegularGrid
