@@ -115,8 +115,9 @@ function load_legacy(filename::AbstractString, coordnames=(:x, :y, :z); na=-999)
   attrinds = setdiff(1:length(spec.varnames), coordinds)
   attrnames = spec.varnames[attrinds]
   table = (; zip(attrnames, eachcol(spec.data[:,attrinds]))...)
-
-  georef(table, PointSet(coords))
+  domain = PointSet(coords)
+  
+  georef(table, domain)
 end
 
 """
