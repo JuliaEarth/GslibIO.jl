@@ -78,11 +78,12 @@ datadir = joinpath(@__DIR__,"data")
 
     # test if storing/leading recovers data
     # to simplify the test, the NaN value is replaced with 99.0
-    sdata[Symbol("Water Saturation")][8] = 99.0
     fname = tempname()*".gslib"
-    GslibIO.save_legacy(fname, sdata)
-    ndata = GslibIO.load_legacy(fname, (2,2,2))
-    @test sdata == ndata
+    na = 99.0
+    GslibIO.save_legacy(fname, sdata, na=na)
+    ndata = GslibIO.load_legacy(fname, (2,2,2), na=na)
+    @test isequal(domain(sdata), domain(ndata))
+    @test isequal(values(sdata), values(ndata))
     rm(fname)
   end
 
