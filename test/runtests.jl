@@ -39,7 +39,7 @@ datadir = joinpath(@__DIR__,"data")
     rm(fname)
   end
 
-  @testset "GSLIBParser" begin
+  @testset "LegacyParser" begin
     fname = joinpath(datadir, "legacy_grid.gslib")
 
     spec = GslibIO.parse_legacy(fname)
@@ -64,7 +64,6 @@ datadir = joinpath(@__DIR__,"data")
 
   @testset "LegacyGrid" begin
     fname = joinpath(datadir,"legacy_grid.gslib")
-
     sdata = GslibIO.load_legacy(fname, (2,2,2))
     @test size(domain(sdata)) == (2,2,2)
     @test origin(domain(sdata)) == [0.,0.,0.]
@@ -76,12 +75,10 @@ datadir = joinpath(@__DIR__,"data")
     @test isequal(lit, [1,2,3,4,5,6,7,8])
     @test isequal(sat, [0.8,0.7,0.8,0.7,0.8,0.7,0.8,NaN])
 
-    # test if storing/leading recovers data
-    # to simplify the test, the NaN value is replaced with 99.0
+    # test if storing/loading recovers data
     fname = tempname()*".gslib"
-    na = 99.0
-    GslibIO.save_legacy(fname, sdata, na=na)
-    ndata = GslibIO.load_legacy(fname, (2,2,2), na=na)
+    GslibIO.save_legacy(fname, sdata, na=-999)
+    ndata = GslibIO.load_legacy(fname, (2,2,2), na=-999)
     @test isequal(domain(sdata), domain(ndata))
     @test isequal(values(sdata), values(ndata))
     rm(fname)
@@ -89,7 +86,6 @@ datadir = joinpath(@__DIR__,"data")
 
   @testset "LegacyPointSet" begin
     fname = joinpath(datadir,"legacy_pset.gslib")
-
     coordnames = (:East, :North, :Elevation)
     sdata = GslibIO.load_legacy(fname, coordnames)
     cdata = coordinates(sdata)
@@ -105,7 +101,7 @@ datadir = joinpath(@__DIR__,"data")
     coordnames = (:x, :y, :Elevation)
     @test_throws AssertionError GslibIO.load_legacy(fname, coordnames)
 
-    # test if storing/leading recovers data
+    # test if storing/loading recovers data
     fname = tempname()*".gslib"
     GslibIO.save_legacy(fname, sdata, coordnames=coordnames)
     ndata = GslibIO.load_legacy(fname, coordnames)
@@ -115,7 +111,6 @@ datadir = joinpath(@__DIR__,"data")
 
   @testset "LegacyInvalid" begin
     fname = joinpath(datadir,"legacy_invalid.gslib")
-
     coordnames = (:x, :y, :z)
     @test_throws MethodError GslibIO.load_legacy(fname, coordnames)
   end
