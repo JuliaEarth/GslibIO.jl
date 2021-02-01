@@ -116,7 +116,7 @@ function load_legacy(filename::AbstractString, coordnames=(:x, :y, :z); na=-999)
   attrnames = spec.varnames[attrinds]
   table = (; zip(attrnames, eachcol(spec.data[:,attrinds]))...)
   domain = PointSet(coords)
-  
+
   georef(table, domain)
 end
 
@@ -231,10 +231,9 @@ function save_legacy(filename::AbstractString, sdata::AbstractData; coordnames=(
   
   if sdomain isa PointSet
     # add coordinates to data and coordnames to varnames
-    coords = coordinates(sdomain)
     @assert ncoords(sdomain) == length(coordnames) "the length of coordinate names must be equal to the coordinate dimension"
     varnames = [coordnames...; propertynames(table)]
-    data = [coords' Matrix(table)]
+    data = [coordinates(sdomain)' Matrix(table)]
   elseif sdomain isa RegularGrid
     # a regular grid does not need to save coordinates
     varnames = propertynames(table)
