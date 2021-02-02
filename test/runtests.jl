@@ -7,10 +7,6 @@ using Pkg, Test, Random
 isCI = "CI" ∈ keys(ENV)
 islinux = Sys.islinux()
 visualtests = !isCI || (isCI && islinux)
-if !isCI
-  Pkg.add("Gtk")
-  using Gtk
-end
 datadir = joinpath(@__DIR__,"data")
 
 @testset "GslibIO.jl" begin
@@ -64,10 +60,13 @@ datadir = joinpath(@__DIR__,"data")
 
   @testset "LegacyGrid" begin
     fname = joinpath(datadir,"legacy_grid.gslib")
+
     sdata = GslibIO.load_legacy(fname, (2,2,2))
+
     @test size(domain(sdata)) == (2,2,2)
     @test origin(domain(sdata)) == [0.,0.,0.]
     @test spacing(domain(sdata)) == [1.,1.,1.]
+
     por = sdata[:Porosity]
     lit = sdata[:Lithology]
     sat = sdata[Symbol("Water Saturation")]
@@ -81,16 +80,19 @@ datadir = joinpath(@__DIR__,"data")
     ndata = GslibIO.load_legacy(fname, (2,2,2), na=-999)
     @test isequal(domain(sdata), domain(ndata))
     @test isequal(values(sdata), values(ndata))
+
     rm(fname)
   end
 
   @testset "LegacyPointSet" begin
     fname = joinpath(datadir,"legacy_pset.gslib")
-    coordnames = (:East, :North, :Elevation)
-    sdata = GslibIO.load_legacy(fname, coordnames)
+
+    sdata = GslibIO.load_legacy(fname, (:East, :North, :Elevation))
+
     cdata = coordinates(sdata)
     @test size(cdata) == (3, 4)
     @test nelms(sdata) == 4
+
     por = sdata[:Porosity]
     @test isequal(por, [0.1, 0.2, 0.3, 0.4])
     @test isequal(cdata[1, :], [10.0, 20.0, 30.0, 40.0])
@@ -98,20 +100,20 @@ datadir = joinpath(@__DIR__,"data")
     @test isequal(cdata[3, :], [12.0, 22.0, 32.0, 42.0])
 
     # test when coordnames are not in varnames
-    coordnames = (:x, :y, :Elevation)
-    @test_throws AssertionError GslibIO.load_legacy(fname, coordnames)
+    @test_throws AssertionError GslibIO.load_legacy(fname, (:x, :y, :Elevation))
 
     # test if storing/loading recovers data
     fname = tempname()*".gslib"
-    GslibIO.save_legacy(fname, sdata, coordnames=coordnames)
-    ndata = GslibIO.load_legacy(fname, coordnames)
+    GslibIO.save_legacy(fname, sdata, coordnames=(:x, :y, :Elevation))
+    ndata = GslibIO.load_legacy(fname, (:x, :y, :Elevation))
     @test sdata == ndata
+
     rm(fname)
   end
 
   @testset "LegacyInvalid" begin
     fname = joinpath(datadir,"legacy_invalid.gslib")
-    coordnames = (:x, :y, :z)
-    @test_throws MethodError GslibIO.load_legacy(fname, coordnames)
+
+    @test_throws MethodError GslibIO.load_legacy(fname, (:x, :y, :z))
   end
 end
