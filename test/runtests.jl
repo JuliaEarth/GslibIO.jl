@@ -114,5 +114,4 @@ datadir = joinpath(@__DIR__,"data")
     coordnames = (:x, :y, :z)
     @test_throws MethodError GslibIO.load_legacy(fname, coordnames)
   end
-
 end
