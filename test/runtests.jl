@@ -39,9 +39,31 @@ datadir = joinpath(@__DIR__,"data")
     rm(fname)
   end
 
-  @testset "Legacy" begin
-    fname = joinpath(datadir,"legacy.gslib")
+  @testset "LegacyParser" begin
+    fname = joinpath(datadir, "legacy_grid.gslib")
 
+    spec = GslibIO.parse_legacy(fname)
+
+    @test isequal(spec.data[:, 1], [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8])
+    @test isequal(spec.data[:, 2], [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0])
+    @test isequal(spec.data[:, 3], [0.8, 0.7, 0.8, 0.7, 0.8, 0.7, 0.8, -999.0])
+
+    @test spec.varnames == [:Porosity, :Lithology, Symbol("Water Saturation")]
+
+    fname = joinpath(datadir, "legacy_pset.gslib")
+
+    spec = GslibIO.parse_legacy(fname)
+
+    @test spec.varnames == [:East, :North, :Elevation, :Porosity]
+
+    @test isequal(spec.data[:, 1], [10.0, 20.0, 30.0, 40.0])
+    @test isequal(spec.data[:, 2], [11.0, 21.0, 31.0, 41.0])
+    @test isequal(spec.data[:, 3], [12.0, 22.0, 32.0, 42.0])
+    @test isequal(spec.data[:, 4], [0.1, 0.2, 0.3, 0.4])
+  end
+
+  @testset "LegacyGrid" begin
+    fname = joinpath(datadir,"legacy_grid.gslib")
     sdata = GslibIO.load_legacy(fname, (2,2,2))
     @test size(domain(sdata)) == (2,2,2)
     @test origin(domain(sdata)) == [0.,0.,0.]
@@ -52,5 +74,44 @@ datadir = joinpath(@__DIR__,"data")
     @test isequal(por, [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8])
     @test isequal(lit, [1,2,3,4,5,6,7,8])
     @test isequal(sat, [0.8,0.7,0.8,0.7,0.8,0.7,0.8,NaN])
+
+    # test if storing/loading recovers data
+    fname = tempname()*".gslib"
+    GslibIO.save_legacy(fname, sdata, na=-999)
+    ndata = GslibIO.load_legacy(fname, (2,2,2), na=-999)
+    @test isequal(domain(sdata), domain(ndata))
+    @test isequal(values(sdata), values(ndata))
+    rm(fname)
+  end
+
+  @testset "LegacyPointSet" begin
+    fname = joinpath(datadir,"legacy_pset.gslib")
+    coordnames = (:East, :North, :Elevation)
+    sdata = GslibIO.load_legacy(fname, coordnames)
+    cdata = coordinates(sdata)
+    @test size(cdata) == (3, 4)
+    @test nelms(sdata) == 4
+    por = sdata[:Porosity]
+    @test isequal(por, [0.1, 0.2, 0.3, 0.4])
+    @test isequal(cdata[1, :], [10.0, 20.0, 30.0, 40.0])
+    @test isequal(cdata[2, :], [11.0, 21.0, 31.0, 41.0])
+    @test isequal(cdata[3, :], [12.0, 22.0, 32.0, 42.0])
+
+    # test when coordnames are not in varnames
+    coordnames = (:x, :y, :Elevation)
+    @test_throws AssertionError GslibIO.load_legacy(fname, coordnames)
+
+    # test if storing/loading recovers data
+    fname = tempname()*".gslib"
+    GslibIO.save_legacy(fname, sdata, coordnames=coordnames)
+    ndata = GslibIO.load_legacy(fname, coordnames)
+    @test sdata == ndata
+    rm(fname)
+  end
+
+  @testset "LegacyInvalid" begin
+    fname = joinpath(datadir,"legacy_invalid.gslib")
+    coordnames = (:x, :y, :z)
+    @test_throws MethodError GslibIO.load_legacy(fname, coordnames)
   end
 end
