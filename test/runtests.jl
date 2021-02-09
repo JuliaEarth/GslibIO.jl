@@ -1,12 +1,9 @@
-using FileIO
 using GslibIO
+using FileIO
 using GeoStatsBase
-using Pkg, Test, Random
+using Test
 
 # environment settings
-isCI = "CI" ∈ keys(ENV)
-islinux = Sys.islinux()
-visualtests = !isCI || (isCI && islinux)
 datadir = joinpath(@__DIR__,"data")
 
 @testset "GslibIO.jl" begin
@@ -46,7 +43,7 @@ datadir = joinpath(@__DIR__,"data")
 
     @test spec.varnames == [:Porosity, :Lithology, Symbol("Water Saturation")]
 
-    fname = joinpath(datadir, "legacy_pset.gslib")
+    fname = joinpath(datadir,"legacy_pset.gslib")
 
     spec = GslibIO.parse_legacy(fname)
 
