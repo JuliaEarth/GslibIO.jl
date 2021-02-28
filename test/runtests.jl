@@ -1,5 +1,6 @@
 using GslibIO
 using FileIO
+using Meshes
 using GeoStatsBase
 using Test
 
@@ -61,7 +62,7 @@ datadir = joinpath(@__DIR__,"data")
     sdata = GslibIO.load_legacy(fname, (2,2,2))
 
     @test size(domain(sdata)) == (2,2,2)
-    @test origin(domain(sdata)) == [0.,0.,0.]
+    @test minimum(domain(sdata)) == Point(0.,0.,0.)
     @test spacing(domain(sdata)) == [1.,1.,1.]
 
     por = sdata[:Porosity]
@@ -86,15 +87,16 @@ datadir = joinpath(@__DIR__,"data")
 
     sdata = GslibIO.load_legacy(fname, (:East, :North, :Elevation))
 
-    cdata = coordinates(sdata)
-    @test size(cdata) == (3, 4)
-    @test nelms(sdata) == 4
+    sdomain = domain(sdata)
+    @test embeddim(sdomain) == 3
+    @test nelements(sdomain) == 4
 
     por = sdata[:Porosity]
+    X = coordinates(sdomain, 1:nelements(sdomain))
     @test isequal(por, [0.1, 0.2, 0.3, 0.4])
-    @test isequal(cdata[1, :], [10.0, 20.0, 30.0, 40.0])
-    @test isequal(cdata[2, :], [11.0, 21.0, 31.0, 41.0])
-    @test isequal(cdata[3, :], [12.0, 22.0, 32.0, 42.0])
+    @test isequal(X[1, :], [10.0, 20.0, 30.0, 40.0])
+    @test isequal(X[2, :], [11.0, 21.0, 31.0, 41.0])
+    @test isequal(X[3, :], [12.0, 22.0, 32.0, 42.0])
 
     # test when coordnames are not in varnames
     @test_throws AssertionError GslibIO.load_legacy(fname, (:x, :y, :Elevation))

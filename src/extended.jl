@@ -30,7 +30,7 @@ function load(file::File{format"GSLIB"})
 
     # create data dictionary
     data = (; zip(vars, eachcol(X))...)
-    domain = RegularGrid(dims, orig, spac)
+    domain = CartesianGrid(dims, orig, spac)
 
     georef(data, domain)
   end
@@ -102,15 +102,17 @@ function save(file::File{format"GSLIB"},
 end
 
 """
-    save(file, sdata)
+    save(file, data)
 
-Save spatial data `sdata` with `RegularGrid` domain to `file`.
+Save spatial `data` with `CartesianGrid` domain to `file`.
 """
-function save(file::File{format"GSLIB"}, sdata::AbstractData)
-  vars  = name.(variables(sdata))
-  grid  = domain(sdata)
-  table = values(sdata)
-  save(file, collect(eachcol(table)), size(grid),
-       origin=origin(grid), spacing=spacing(grid),
+function save(file::File{format"GSLIB"}, data::Data)
+  vars  = name.(variables(data))
+  grid  = domain(data)
+  table = values(data)
+  cols  = Tables.columns(table)
+  save(file, collect(cols), size(grid),
+       origin=coordinates(minimum((grid))),
+       spacing=spacing(grid),
        propnames=vars)
 end
