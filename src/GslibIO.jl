@@ -4,11 +4,13 @@
 
 module GslibIO
 
+using Meshes
+using Tables
+using GeoStatsBase
+
 using FileIO
 using Printf
 using DelimitedFiles
-
-using GeoStatsBase
 
 include("extended.jl")
 include("legacy.jl")

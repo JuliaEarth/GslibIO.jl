@@ -46,7 +46,7 @@ function load_legacy(filename::AbstractString, dims::NTuple{3,Int};
 
   # create data dictionary
   table = (; zip(spec.varnames, eachcol(spec.data))...)
-  domain = RegularGrid(dims, origin, spacing)
+  domain = CartesianGrid(dims, origin, spacing)
 
   georef(table, domain)
 end
@@ -98,25 +98,27 @@ function save_legacy(filename::AbstractString, data::AbstractMatrix,
 end
 
 """
-    save_legacy(filename, sdata)
+    save_legacy(filename, data; coordnames=(:x,:y,:z), header="...", na=-999.0)
 
-Save spatial data `sdata` to `filename` in legacy GSLIB format. Optionally, specify
-the `coordnames`, the `header` and the value `na` used to represent missing entries.
+Save spatial `data` to `filename` in legacy GSLIB format. Optionally, specify the
+`coordnames`, the `header` and the value `na` used to represent missing entries.
 """
-function save_legacy(filename::AbstractString, sdata::AbstractData; coordnames=(:x, :y, :z),
+function save_legacy(filename::AbstractString, sdata::Data; coordnames=(:x, :y, :z),
                      header="# This file was generated with GslibIO.jl", na=-999.0)
   table = values(sdata)
   sdomain = domain(sdata)
   
   if sdomain isa PointSet
     # add coordinates to data and coordnames to varnames
-    @assert ncoords(sdomain) == length(coordnames) "the length of coordinate names must be equal to the coordinate dimension"
-    varnames = [coordnames...; propertynames(table)]
-    data = [coordinates(sdomain)' Matrix(table)]
-  elseif sdomain isa RegularGrid
+    @assert embeddim(sdomain) == length(coordnames) "the length of coordinate names must be equal to the coordinate dimension"
+    varnames = [coordnames...; propertynames(table)...]
+    X = coordinates(sdomain, 1:nelements(sdomain))'
+    V = Tables.matrix(table)
+    data = [X V]
+  elseif sdomain isa CartesianGrid
     # a regular grid does not need to save coordinates
     varnames = propertynames(table)
-    data = Matrix(table)
+    data = Tables.matrix(table)
   else
     @error "can only save data defined on point sets or regular grids"
   end
