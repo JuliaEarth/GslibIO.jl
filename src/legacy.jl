@@ -103,25 +103,26 @@ end
 Save spatial `data` to `filename` in legacy GSLIB format. Optionally, specify the
 `coordnames`, the `header` and the value `na` used to represent missing entries.
 """
-function save_legacy(filename::AbstractString, sdata::Data; coordnames=(:x, :y, :z),
+function save_legacy(filename::AbstractString, data::Data; coordnames=(:x, :y, :z),
                      header="# This file was generated with GslibIO.jl", na=-999.0)
-  table = values(sdata)
-  sdomain = domain(sdata)
+  dom = domain(data)
+  tab = values(data)
   
-  if sdomain isa PointSet
+  if dom isa PointSet
     # add coordinates to data and coordnames to varnames
-    @assert embeddim(sdomain) == length(coordnames) "the length of coordinate names must be equal to the coordinate dimension"
-    varnames = [coordnames...; propertynames(table)...]
-    X = coordinates(sdomain, 1:nelements(sdomain))'
-    V = Tables.matrix(table)
-    data = [X V]
-  elseif sdomain isa CartesianGrid
+    @assert embeddim(dom) == length(coordnames) "the length of coordinate names must be equal to the coordinate dimension"
+    varnames = [coordnames...; propertynames(tab)...]
+    xs = (coordinates(centroid(dom, i)) for i in 1:nelements(dom))
+    X  = reduce(hcat, xs)'
+    V  = Tables.matrix(tab)
+    matrix = [X V]
+  elseif dom isa CartesianGrid
     # a regular grid does not need to save coordinates
-    varnames = propertynames(table)
-    data = Tables.matrix(table)
+    varnames = propertynames(tab)
+    matrix = Tables.matrix(tab)
   else
     @error "can only save data defined on point sets or regular grids"
   end
 
-  save_legacy(filename, data, Tuple(varnames), header, na)
+  save_legacy(filename, matrix, Tuple(varnames), header, na)
 end

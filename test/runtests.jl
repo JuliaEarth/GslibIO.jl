@@ -92,11 +92,11 @@ datadir = joinpath(@__DIR__,"data")
     @test nelements(sdomain) == 4
 
     por = sdata[:Porosity]
-    X = coordinates(sdomain, 1:nelements(sdomain))
+    @test centroid(sdomain, 1) == Point(10.0, 11.0, 12.0)
+    @test centroid(sdomain, 2) == Point(20.0, 21.0, 22.0)
+    @test centroid(sdomain, 3) == Point(30.0, 31.0, 32.0)
+    @test centroid(sdomain, 4) == Point(40.0, 41.0, 42.0)
     @test isequal(por, [0.1, 0.2, 0.3, 0.4])
-    @test isequal(X[1, :], [10.0, 20.0, 30.0, 40.0])
-    @test isequal(X[2, :], [11.0, 21.0, 31.0, 41.0])
-    @test isequal(X[3, :], [12.0, 22.0, 32.0, 42.0])
 
     # test when coordnames are not in varnames
     @test_throws AssertionError GslibIO.load_legacy(fname, (:x, :y, :Elevation))
