@@ -9,12 +9,11 @@ files in Julia.
 
 ## Overview
 
-The GSLIB file format was introduced a long time ago for storing spatial
-data over regular grids or point sets in text files that are easy to read.
+The GSLIB file format was introduced a long time ago for storing geospatial
+data over Cartesian grids or point sets in text files that are easy to read.
+Unfortantely, the format specification is incomplete:
 
-The format specification is incomplete in both cases:
-
-### Regular grids
+### Cartesian grids
 
 - it doesn't contain the size of the grid (i.e. `(nx, ny, nz)`)
 - it doesn't specify the origin and spacing (i.e. `(ox, oy, oz)`, `(sx, sy, sz)`)
@@ -24,8 +23,8 @@ The format specification is incomplete in both cases:
 
 - it doesn't specify which variable names are geospatial coordinates
 
-This package introduces an extended GSLIB format that addresses the issues
-listed above.
+This package introduces an extended GSLIB format that addresses these issues.
+It also provides helper functions to load data in legacy format.
 
 ## Installation
 
@@ -37,34 +36,25 @@ Get the latest stable release with Julia's package manager:
 
 ## Usage
 
-This package follows Julia's
-[FileIO](https://github.com/JuliaIO/FileIO.jl) interface, it provides two
-functions `save` and `load` for the *extended* GSLIB file format and two
-functions `save_legacy` and `load_legacy` for the *legacy* GSLIB file format. Please consult the docstring of each function for more information.
+Please use `save` and `load` for the *extended* GSLIB file format and
+`save_legacy` and `load_legacy` for the *legacy* GSLIB file format.
+Consult the docstring of each function for more information.
 
 A usual workflow consists of loading a legacy file with `load_legacy`
 by setting the options manually, and then saving the data back to disk
 in extended format with `save`. The new extended format can then be
-loaded without any human intervention.
+loaded without human intervention.
 
-## Extended format
+```julia
+using FileIO
+using GslibIO
 
-### Regular grids
+# load grid data in legacy format
+data = load_legacy("legacy.gslib", (100,100,50), na=-999)
 
-Below is the extended format for spatial data over regular grids:
+# save grid data in extended format
+save("extended.gslib", data)
 
+# can be loaded without special options
+load("extended.gslib")
 ```
-# optional comment lines at the start of the file
-# more comments ...
-<nx> <ny> <nz>
-<ox> <oy> <oz>
-<sx> <sy> <sz>
-<property_name1>   <property_name2> ...   <property_nameN>
-<property_value11> <property_value12> ... <property_value1N>
-<property_value21> <property_value22> ... <property_value2N>
-...
-<property_value(Nx*Ny*Nz)1> <property_value(Nx*Ny*Nz)2> ... <property_value(Nx*Ny*Nz)N>
-```
-
-Inactive cells are marked with the special symbol `NaN`. This means that all properties are saved as floating point
-numbers regardless of interpretation (categorical or continuous).
