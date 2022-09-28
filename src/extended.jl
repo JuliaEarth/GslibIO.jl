@@ -10,23 +10,21 @@ const Array2or3{T} = Union{AbstractArray{T,2},AbstractArray{T,3}}
 
 Load grid properties from `file`.
 """
-function load(file::File{format"GSLIB"})
+function load(file::AbstractString)
   open(file) do f
-    fs = stream(f)
-
     # skip header
-    skipchars(_ -> false, fs, linecomment='#')
+    skipchars(_ -> false, f, linecomment='#')
 
     # read dimensions
-    dims = parse.(Int,     Tuple(split(readline(fs))))
-    orig = parse.(Float64, Tuple(split(readline(fs))))
-    spac = parse.(Float64, Tuple(split(readline(fs))))
+    dims = parse.(Int,     Tuple(split(readline(f))))
+    orig = parse.(Float64, Tuple(split(readline(f))))
+    spac = parse.(Float64, Tuple(split(readline(f))))
 
     # read property names
-    vars = Symbol.(split(readline(fs)))
+    vars = Symbol.(split(readline(f)))
 
     # read property values
-    X = readdlm(fs)
+    X = readdlm(f)
 
     # create data dictionary
     etable = (; zip(vars, eachcol(X))...)
@@ -41,8 +39,7 @@ end
 
 Save 1D `properties` to `file`, which originally had size `dims`.
 """
-function save(file::File{format"GSLIB"},
-              properties::AbstractVector, dims::Dims{N};
+function save(file::AbstractString, properties::AbstractVector, dims::Dims{N};
               origin=ntuple(i->0.0,N), spacing=ntuple(i->1.0,N),
               header="", propnames="") where {N}
   # default property names
@@ -68,7 +65,7 @@ function save(file::File{format"GSLIB"},
 
     # write property name and values
     write(f, "$propnames\n")
-    writedlm(stream(f), P, ' ')
+    writedlm(f, P, ' ')
   end
 end
 
@@ -77,7 +74,7 @@ end
 
 Save 2D/3D `properties` by first flattening them into 1D properties.
 """
-function save(file::File{format"GSLIB"}, properties::Vector{A};
+function save(file::AbstractString, properties::Vector{A};
               kwargs...) where {T,A<:Array2or3{T}}
   # sanity checks
   @assert length(Set(size.(properties))) == 1 "properties must have the same size"
@@ -96,17 +93,15 @@ end
 
 Save single 2D/3D `property` by wrapping it into a singleton collection.
 """
-function save(file::File{format"GSLIB"},
-              property::A; kwargs...) where {T,A<:Array2or3{T}}
+save(file::AbstractString, property::A; kwargs...) where {T,A<:Array2or3{T}} =
   save(file, [property]; kwargs...)
-end
 
 """
     save(file, data)
 
 Save spatial `data` with `CartesianGrid` domain to `file`.
 """
-function save(file::File{format"GSLIB"}, data::Data)
+function save(file::AbstractString, data::Data)
   vars  = name.(variables(data))
   grid  = domain(data)
   table = values(data)

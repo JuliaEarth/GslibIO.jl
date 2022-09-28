@@ -1,5 +1,4 @@
 using GslibIO
-using FileIO
 using Meshes
 using Test
 
@@ -14,18 +13,18 @@ datadir = joinpath(@__DIR__,"data")
     props2D = rand(10,10), rand(10,10)
 
     for (prop1, prop2) in [props2D, props3D]
-      FileIO.save(fname, [prop1,prop2])
-      grid = FileIO.load(fname)
+      GslibIO.save(fname, [prop1,prop2])
+      grid = GslibIO.load(fname)
       @test grid[:prop1] == vec(prop1)
       @test grid[:prop2] == vec(prop2)
 
-      FileIO.save(fname, grid)
-      grid = FileIO.load(fname)
+      GslibIO.save(fname, grid)
+      grid = GslibIO.load(fname)
       @test grid[:prop1] == vec(prop1)
       @test grid[:prop2] == vec(prop2)
 
-      FileIO.save(fname, prop1)
-      grid = FileIO.load(fname)
+      GslibIO.save(fname, prop1)
+      grid = GslibIO.load(fname)
       @test grid[:prop1] == vec(prop1)
     end
 

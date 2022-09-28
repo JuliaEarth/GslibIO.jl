@@ -7,7 +7,6 @@ module GslibIO
 using Meshes
 using Tables
 
-using FileIO
 using Printf
 using DelimitedFiles
 

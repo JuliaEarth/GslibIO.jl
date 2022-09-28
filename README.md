@@ -30,7 +30,7 @@ It also provides helper functions to load data in legacy format.
 
 Get the latest stable release with Julia's package manager:
 
-```julia
+```
 ] add GslibIO
 ```
 
@@ -46,15 +46,14 @@ in extended format with `save`. The new extended format can then be
 loaded without human intervention.
 
 ```julia
-using FileIO
 using GslibIO
 
-# load grid data in legacy format
-data = load_legacy("legacy.gslib", (100,100,50), na=-999)
+# load grid data stored in legacy format
+data = GslibIO.load_legacy("legacy.gslib", (100,100,50), na=-999)
 
-# save grid data in extended format
-save("extended.gslib", data)
+# save grid data in new extended format
+GslibIO.save("extended.gslib", data)
 
-# can be loaded without special options
-load("extended.gslib")
+# now it can be loaded without special options
+GslibIO.load("extended.gslib")
 ```
