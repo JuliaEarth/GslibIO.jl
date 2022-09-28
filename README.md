@@ -40,7 +40,7 @@ Please use `save` and `load` for the *extended* GSLIB file format and
 `save_legacy` and `load_legacy` for the *legacy* GSLIB file format.
 Consult the docstring of each function for more information.
 
-A usual workflow consists of loading a legacy file with `load_legacy`
+An usual workflow consists of loading a legacy file with `load_legacy`
 by setting the options manually, and then saving the data back to disk
 in extended format with `save`. The new extended format can then be
 loaded without human intervention.
