@@ -45,10 +45,10 @@ function load_legacy(filename::AbstractString, dims::NTuple{3,Int};
   replace!(spec.data, na=>NaN)
 
   # create data dictionary
-  table = (; zip(spec.varnames, eachcol(spec.data))...)
+  etable = (; zip(spec.varnames, eachcol(spec.data))...)
   domain = CartesianGrid(dims, origin, spacing)
 
-  georef(table, domain)
+  meshdata(domain, etable=etable)
 end
 
 """
@@ -72,10 +72,10 @@ function load_legacy(filename::AbstractString, coordnames=(:x, :y, :z); na=-999)
   # create table with varnames not in coordnames
   attrinds = setdiff(1:length(spec.varnames), coordinds)
   attrnames = spec.varnames[attrinds]
-  table = (; zip(attrnames, eachcol(spec.data[:,attrinds]))...)
+  etable = (; zip(attrnames, eachcol(spec.data[:,attrinds]))...)
   domain = PointSet(coords)
 
-  georef(table, domain)
+  meshdata(domain, etable=etable)
 end
 
 # low level function for saving data to a legacy GSLIB format

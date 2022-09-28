@@ -1,7 +1,6 @@
 using GslibIO
 using FileIO
 using Meshes
-using GeoStatsBase
 using Test
 
 # environment settings
@@ -63,7 +62,7 @@ datadir = joinpath(@__DIR__,"data")
 
     @test size(domain(sdata)) == (2,2,2)
     @test minimum(domain(sdata)) == Point(0.,0.,0.)
-    @test spacing(domain(sdata)) == [1.,1.,1.]
+    @test spacing(domain(sdata)) == (1.,1.,1.)
 
     por = sdata[:Porosity]
     lit = sdata[:Lithology]

@@ -29,10 +29,10 @@ function load(file::File{format"GSLIB"})
     X = readdlm(fs)
 
     # create data dictionary
-    data = (; zip(vars, eachcol(X))...)
+    etable = (; zip(vars, eachcol(X))...)
     domain = CartesianGrid(dims, orig, spac)
 
-    georef(data, domain)
+    meshdata(domain, etable=etable)
   end
 end
 

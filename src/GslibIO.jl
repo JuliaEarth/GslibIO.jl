@@ -6,7 +6,6 @@ module GslibIO
 
 using Meshes
 using Tables
-using GeoStatsBase
 
 using FileIO
 using Printf
