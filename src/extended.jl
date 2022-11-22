@@ -102,10 +102,10 @@ save(file::AbstractString, property::A; kwargs...) where {T,A<:Array2or3{T}} =
 Save spatial `data` with `CartesianGrid` domain to `file`.
 """
 function save(file::AbstractString, data::Data)
-  vars  = name.(variables(data))
   grid  = domain(data)
   table = values(data)
   cols  = Tables.columns(table)
+  vars  = Tables.columnnames(cols)
   save(file, collect(cols), size(grid),
        origin=coordinates(minimum((grid))),
        spacing=spacing(grid),

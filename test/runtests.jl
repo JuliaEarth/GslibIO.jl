@@ -15,17 +15,17 @@ datadir = joinpath(@__DIR__,"data")
     for (prop1, prop2) in [props2D, props3D]
       GslibIO.save(fname, [prop1,prop2])
       grid = GslibIO.load(fname)
-      @test grid[:prop1] == vec(prop1)
-      @test grid[:prop2] == vec(prop2)
+      @test grid.prop1 == vec(prop1)
+      @test grid.prop2 == vec(prop2)
 
       GslibIO.save(fname, grid)
       grid = GslibIO.load(fname)
-      @test grid[:prop1] == vec(prop1)
-      @test grid[:prop2] == vec(prop2)
+      @test grid.prop1 == vec(prop1)
+      @test grid.prop2 == vec(prop2)
 
       GslibIO.save(fname, prop1)
       grid = GslibIO.load(fname)
-      @test grid[:prop1] == vec(prop1)
+      @test grid.prop1 == vec(prop1)
     end
 
     rm(fname)
@@ -63,9 +63,9 @@ datadir = joinpath(@__DIR__,"data")
     @test minimum(domain(sdata)) == Point(0.,0.,0.)
     @test spacing(domain(sdata)) == (1.,1.,1.)
 
-    por = sdata[:Porosity]
-    lit = sdata[:Lithology]
-    sat = sdata[Symbol("Water Saturation")]
+    por = sdata.Porosity
+    lit = sdata.Lithology
+    sat = sdata."Water Saturation"
     @test isequal(por, [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8])
     @test isequal(lit, [1,2,3,4,5,6,7,8])
     @test isequal(sat, [0.8,0.7,0.8,0.7,0.8,0.7,0.8,NaN])
@@ -89,7 +89,7 @@ datadir = joinpath(@__DIR__,"data")
     @test embeddim(sdomain) == 3
     @test nelements(sdomain) == 4
 
-    por = sdata[:Porosity]
+    por = sdata.Porosity
     @test centroid(sdomain, 1) == Point(10.0, 11.0, 12.0)
     @test centroid(sdomain, 2) == Point(20.0, 21.0, 22.0)
     @test centroid(sdomain, 3) == Point(30.0, 31.0, 32.0)
