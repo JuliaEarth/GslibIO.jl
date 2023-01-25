@@ -4,7 +4,7 @@ Utilities to read/write *extended* and *legacy*
 [GSLIB](http://www.gslib.com/gslib_help/format.html)
 files in Julia.
 
-[![Build Status](https://img.shields.io/github/workflow/status/JuliaEarth/GslibIO.jl/CI)](https://github.com/JuliaEarth/GslibIO.jl/actions)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/JuliaEarth/GslibIO.jl/CI.yml?branch=master&style=flat-square")](https://github.com/JuliaEarth/GslibIO.jl/actions)
 [![Coverage Status](https://codecov.io/gh/JuliaEarth/GslibIO.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaEarth/GslibIO.jl)
 
 ## Overview
