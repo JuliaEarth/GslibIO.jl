@@ -16,7 +16,7 @@ function load(file::AbstractString)
     skipchars(_ -> false, f, linecomment='#')
 
     # read dimensions
-    dims = parse.(Int,     Tuple(split(readline(f))))
+    dims = parse.(Int, Tuple(split(readline(f))))
     orig = parse.(Float64, Tuple(split(readline(f))))
     spac = parse.(Float64, Tuple(split(readline(f))))
 
@@ -39,11 +39,17 @@ end
 
 Save 1D `properties` to `file`, which originally had size `dims`.
 """
-function save(file::AbstractString, properties::AbstractVector, dims::Dims{N};
-              origin=ntuple(i->0.0,N), spacing=ntuple(i->1.0,N),
-              header="", propnames="") where {N}
+function save(
+  file::AbstractString,
+  properties::AbstractVector,
+  dims::Dims{N};
+  origin=ntuple(i -> 0.0, N),
+  spacing=ntuple(i -> 1.0, N),
+  header="",
+  propnames=""
+) where {N}
   # default property names
-  isempty(propnames) && (propnames = ["prop$i" for i=1:length(properties)])
+  isempty(propnames) && (propnames = ["prop$i" for i in 1:length(properties)])
   @assert length(propnames) == length(properties) "number of property names must match number of properties"
 
   # convert vector of names to a long string
@@ -55,13 +61,13 @@ function save(file::AbstractString, properties::AbstractVector, dims::Dims{N};
   open(file, "w") do f
     # write header
     write(f, "# This file was generated with GslibIO.jl\n")
-    !isempty(header) && write(f, "#\n# "*header*"\n")
+    !isempty(header) && write(f, "#\n# " * header * "\n")
 
     # write dimensions
     dimsstr = join([@sprintf "%i" i for i in dims], " ")
     origstr = join([@sprintf "%f" o for o in origin], " ")
     spacstr = join([@sprintf "%f" s for s in spacing], " ")
-    write(f, dimsstr*"\n"*origstr*"\n"*spacstr*"\n")
+    write(f, dimsstr * "\n" * origstr * "\n" * spacstr * "\n")
 
     # write property name and values
     write(f, "$propnames\n")
@@ -74,8 +80,7 @@ end
 
 Save 2D/3D `properties` by first flattening them into 1D properties.
 """
-function save(file::AbstractString, properties::Vector{A};
-              kwargs...) where {T,A<:Array2or3{T}}
+function save(file::AbstractString, properties::Vector{A}; kwargs...) where {T,A<:Array2or3{T}}
   # sanity checks
   @assert length(Set(size.(properties))) == 1 "properties must have the same size"
 
@@ -93,8 +98,7 @@ end
 
 Save single 2D/3D `property` by wrapping it into a singleton collection.
 """
-save(file::AbstractString, property::A; kwargs...) where {T,A<:Array2or3{T}} =
-  save(file, [property]; kwargs...)
+save(file::AbstractString, property::A; kwargs...) where {T,A<:Array2or3{T}} = save(file, [property]; kwargs...)
 
 """
     save(file, data)
@@ -102,12 +106,9 @@ save(file::AbstractString, property::A; kwargs...) where {T,A<:Array2or3{T}} =
 Save spatial `data` with `CartesianGrid` domain to `file`.
 """
 function save(file::AbstractString, data::Data)
-  grid  = domain(data)
+  grid = domain(data)
   table = values(data)
-  cols  = Tables.columns(table)
-  vars  = Tables.columnnames(cols)
-  save(file, collect(cols), size(grid),
-       origin=coordinates(minimum((grid))),
-       spacing=spacing(grid),
-       propnames=vars)
+  cols = Tables.columns(table)
+  vars = Tables.columnnames(cols)
+  save(file, collect(cols), size(grid), origin=coordinates(minimum((grid))), spacing=spacing(grid), propnames=vars)
 end
