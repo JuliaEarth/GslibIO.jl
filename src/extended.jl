@@ -105,6 +105,7 @@ function save(file::AbstractString, table, domain::Domain; pointvars=nothing, he
   data = Tables.matrix(table)
   pvars = isnothing(pointvars) ? genpvars(domain) : pointvars
   pdata = mapreduce(g -> coordinates(centroid(g)), hcat, domain) |> transpose
+  @assert length(pvars) == embeddim(domain) "the length of `pointvars` must be equal to the domain dimension"
 
   open(file; write=true) do io
     h = isnothing(header) ? HEADER : header
