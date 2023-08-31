@@ -4,29 +4,50 @@ using Test
 
 # environment settings
 datadir = joinpath(@__DIR__, "data")
+savedir = mktempdir()
 
 @testset "GslibIO.jl" begin
-  @testset "Basic" begin
-    fname = tempname() * ".gslib"
+  @testset "ExtendedGrid" begin
+    fname = joinpath(datadir, "extended_grid.gslib")
+    sdata = GslibIO.load(fname)
 
-    props3D = rand(10, 10, 10), rand(10, 10, 10)
-    props2D = rand(10, 10), rand(10, 10)
+    sdomain = domain(sdata)
+    @test size(sdomain) == (2, 2, 2)
+    @test minimum(sdomain) == Point(0.0, 0.0, 0.0)
+    @test spacing(sdomain) == (1.0, 1.0, 1.0)
 
-    for (prop1, prop2) in [props2D, props3D]
-      GslibIO.save(fname, [prop1, prop2])
-      grid = GslibIO.load(fname)
-      @test grid.prop1 == vec(prop1)
-      @test grid.prop2 == vec(prop2)
+    @test sdata.Porosity == [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
+    @test sdata.Lithology == [1, 2, 3, 4, 5, 6, 7, 8]
+    @test isequal(sdata."Water Saturation", [0.8, 0.7, 0.8, 0.7, 0.8, 0.7, 0.8, NaN])
 
-      GslibIO.save(fname, grid)
-      grid = GslibIO.load(fname)
-      @test grid.prop1 == vec(prop1)
-      @test grid.prop2 == vec(prop2)
+    # test if storing/loading recovers data
+    fname = joinpath(savedir, "extended_grid.gslib")
+    GslibIO.save(fname, sdata)
+    ndata = GslibIO.load(fname)
+    @test ndata == sdata
 
-      GslibIO.save(fname, prop1)
-      grid = GslibIO.load(fname)
-      @test grid.prop1 == vec(prop1)
-    end
+    rm(fname)
+  end
+
+  @testset "ExtendedPointSet" begin
+    fname = joinpath(datadir, "extended_pset.gslib")
+    sdata = GslibIO.load(fname)
+
+    sdomain = domain(sdata)
+    @test embeddim(sdomain) == 3
+    @test nelements(sdomain) == 4
+
+    @test sdomain[1] == Point(10.0, 11.0, 12.0)
+    @test sdomain[2] == Point(20.0, 21.0, 22.0)
+    @test sdomain[3] == Point(30.0, 31.0, 32.0)
+    @test sdomain[4] == Point(40.0, 41.0, 42.0)
+    @test sdata.Porosity == [0.1, 0.2, 0.3, 0.4]
+
+    # test if storing/loading recovers data
+    fname = joinpath(savedir, "extended_pset.gslib")
+    GslibIO.save(fname, sdata)
+    ndata = GslibIO.load(fname)
+    @test sdata == ndata
 
     rm(fname)
   end
