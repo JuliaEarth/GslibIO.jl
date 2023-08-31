@@ -88,6 +88,14 @@ end
 Saves the `geotable` or `table` with `domain` to `file` using the GSLIB extended format.
 As the GSLIB format only supports `CartesianGrid` and `PointSet`,
 other domain types will be converted to `PointSet`.
+
+It is possible to define how the point coordinate variables will be saved 
+by passing a list of names (e.g. vector of strings) to the `pointvars` keyword argument,
+otherwise the names "x1", "x2", ..., "xn" will be used.
+
+Use the `header` keyword argument to define the title of the GSLIB file,
+if omitted the following default title will be used: 
+"This file was generated with GslibIO.jl".
 """
 save(file::AbstractString, geotable::Data; kwargs...) = save(file, values(geotable), domain(geotable); kwargs...)
 
