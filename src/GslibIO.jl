@@ -4,8 +4,8 @@
 
 module GslibIO
 
-using Tables
 using Meshes
+using Tables
 using GeoTables
 
 using Printf
