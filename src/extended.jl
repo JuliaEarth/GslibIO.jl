@@ -51,7 +51,7 @@ function _load_grid(io::IO)
   # create data table
   etable = (; zip(vars, eachcol(X))...)
   domain = CartesianGrid(dims, origin, spacing)
-  meshdata(domain; etable)
+  geotable(domain; etable)
 end
 
 function _load_pset(io::IO)
@@ -78,12 +78,12 @@ function _load_pset(io::IO)
   points = map(Point, (data[v] for v in pvars)...)
   etable = (; (v => data[v] for v in setdiff(vars, pvars))...)
   domain = PointSet(points)
-  meshdata(domain; etable)
+  geotable(domain; etable)
 end
 
 """
-    GslibIO.save(file, geotable; pointvars=nothing, header=nothing)
-    GslibIO.save(file, table, domain; pointvars=nothing, header=nothing)
+    GslibIO.save(file, geotable; pointvars, header)
+    GslibIO.save(file, table, domain; pointvars, header)
 
 Saves the `geotable` or `table` with `domain` to `file` using the GSLIB extended format.
 As the GSLIB format only supports `CartesianGrid` and `PointSet`,
@@ -97,26 +97,25 @@ Use the `header` keyword argument to define the title of the GSLIB file,
 if omitted the following default title will be used: 
 "This file was generated with GslibIO.jl".
 """
-save(file::AbstractString, geotable::Data; kwargs...) = save(file, values(geotable), domain(geotable); kwargs...)
+save(file::AbstractString, geotable::AbstractGeoTable; kwargs...) = save(file, values(geotable), domain(geotable); kwargs...)
 
-function save(file::AbstractString, table, domain::Domain; pointvars=nothing, header=nothing)
+function save(file::AbstractString, table, domain::Domain; pointvars=genpvars(domain), header=HEADER)
+  @assert length(pointvars) == embeddim(domain) "the length of `pointvars` must be equal to the domain dimension"
+
   cols = Tables.columns(table)
   vars = Tables.columnnames(cols)
   data = Tables.matrix(table)
-  pvars = isnothing(pointvars) ? genpvars(domain) : pointvars
   pdata = mapreduce(g -> coordinates(centroid(g)), hcat, domain) |> transpose
-  @assert length(pvars) == embeddim(domain) "the length of `pointvars` must be equal to the domain dimension"
 
   open(file; write=true) do io
-    h = isnothing(header) ? HEADER : header
-    write(io, "$h\n")
+    write(io, "$header\n")
     write(io, "pset\n")
-    for var in pvars
+    for var in pointvars
       write(io, "$var\n")
     end
-    nvars = length(pvars) + length(vars)
+    nvars = length(pointvars) + length(vars)
     write(io, "$nvars\n")
-    for var in pvars
+    for var in pointvars
       write(io, "$var\n")
     end
     for var in vars
@@ -126,14 +125,13 @@ function save(file::AbstractString, table, domain::Domain; pointvars=nothing, he
   end
 end
 
-function save(file::AbstractString, table, grid::CartesianGrid; header=nothing, kwargs...)
+function save(file::AbstractString, table, grid::CartesianGrid; header=HEADER, kwargs...)
   cols = Tables.columns(table)
   vars = Tables.columnnames(cols)
   data = Tables.matrix(table)
 
   open(file; write=true) do io
-    h = isnothing(header) ? HEADER : header
-    write(io, "$h\n")
+    write(io, "$header\n")
     write(io, "grid\n")
     write(io, join(size(grid), " ") * "\n")
     write(io, join(coordinates(minimum(grid)), " ") * "\n")
