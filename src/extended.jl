@@ -97,7 +97,8 @@ Use the `header` keyword argument to define the title of the GSLIB file,
 if omitted the following default title will be used: 
 "This file was generated with GslibIO.jl".
 """
-save(file::AbstractString, geotable::AbstractGeoTable; kwargs...) = save(file, values(geotable), domain(geotable); kwargs...)
+save(file::AbstractString, geotable::AbstractGeoTable; kwargs...) =
+  save(file, values(geotable), domain(geotable); kwargs...)
 
 function save(file::AbstractString, table, domain::Domain; pointvars=genpvars(domain), header=HEADER)
   @assert length(pointvars) == embeddim(domain) "the length of `pointvars` must be equal to the domain dimension"
