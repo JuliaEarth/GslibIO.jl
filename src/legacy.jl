@@ -53,7 +53,7 @@ function load_legacy(
   etable = (; zip(spec.varnames, eachcol(spec.data))...)
   domain = CartesianGrid(dims, origin, spacing)
 
-  meshdata(domain, etable=etable)
+  geotable(domain, etable=etable)
 end
 
 """
@@ -80,7 +80,7 @@ function load_legacy(filename::AbstractString, coordnames=(:x, :y, :z); na=-999)
   etable = (; zip(attrnames, eachcol(spec.data[:, attrinds]))...)
   domain = PointSet(coords)
 
-  meshdata(domain, etable=etable)
+  geotable(domain, etable=etable)
 end
 
 # low level function for saving data to a legacy GSLIB format
@@ -109,7 +109,7 @@ Save spatial `data` to `filename` in legacy GSLIB format. Optionally, specify th
 """
 function save_legacy(
   filename::AbstractString,
-  data::Data;
+  data::AbstractGeoTable;
   coordnames=(:x, :y, :z),
   header="# This file was generated with GslibIO.jl",
   na=-999.0

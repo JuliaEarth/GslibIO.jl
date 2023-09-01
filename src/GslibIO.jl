@@ -4,8 +4,9 @@
 
 module GslibIO
 
-using Meshes
 using Tables
+using Meshes
+using GeoTables
 
 using Printf
 using DelimitedFiles
