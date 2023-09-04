@@ -49,9 +49,9 @@ function _load_grid(io::IO)
   X = readdlm(io)
 
   # create data table
-  etable = (; zip(vars, eachcol(X))...)
+  values = (; zip(vars, eachcol(X))...)
   domain = CartesianGrid(dims, origin, spacing)
-  geotable(domain; etable)
+  georef(values, domain)
 end
 
 function _load_pset(io::IO)
@@ -76,9 +76,9 @@ function _load_pset(io::IO)
   # create data table
   data = Dict(zip(vars, eachcol(X)))
   points = map(Point, (data[v] for v in pvars)...)
-  etable = (; (v => data[v] for v in setdiff(vars, pvars))...)
+  values = (; (v => data[v] for v in setdiff(vars, pvars))...)
   domain = PointSet(points)
-  geotable(domain; etable)
+  georef(values, domain)
 end
 
 """
