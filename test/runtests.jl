@@ -49,8 +49,69 @@ savedir = mktempdir()
     GslibIO.save(fname, sdata)
     ndata = GslibIO.load(fname)
     @test sdata == ndata
-
     rm(fname)
+
+    # generated point variable names
+    # test note: point variable names appear 2 times in the file
+    fname = joinpath(savedir, "extended_pset_1D.gslib")
+    sdata = georef((; a=rand(10)), rand(Point1, 10))
+    GslibIO.save(fname, sdata)
+    ndata = GslibIO.load(fname)
+    @test sdata == ndata
+    flines = readlines(fname)
+    @test count(==("x"), flines) == 2
+    rm(fname)
+
+    fname = joinpath(savedir, "extended_pset_2D.gslib")
+    sdata = georef((; a=rand(10)), rand(Point2, 10))
+    GslibIO.save(fname, sdata)
+    ndata = GslibIO.load(fname)
+    @test sdata == ndata
+    flines = readlines(fname)
+    @test count(==("x"), flines) == 2
+    @test count(==("y"), flines) == 2
+    rm(fname)
+
+    fname = joinpath(savedir, "extended_pset_3D.gslib")
+    sdata = georef((; a=rand(10)), rand(Point3, 10))
+    GslibIO.save(fname, sdata)
+    ndata = GslibIO.load(fname)
+    @test sdata == ndata
+    flines = readlines(fname)
+    @test count(==("x"), flines) == 2
+    @test count(==("y"), flines) == 2
+    @test count(==("z"), flines) == 2
+    rm(fname)
+
+    # make point variable names unique
+    fname = joinpath(savedir, "extended_pset.gslib")
+    sdata = georef((x=rand(10), y=rand(10)), rand(Point2, 10))
+    GslibIO.save(fname, sdata)
+    ndata = GslibIO.load(fname)
+    @test sdata == ndata
+    flines = readlines(fname)
+    @test count(==("x_"), flines) == 2
+    @test count(==("y_"), flines) == 2
+    rm(fname)
+
+    # custom point variable names
+    fname = joinpath(savedir, "extended_pset.gslib")
+    sdata = georef((; a=rand(10)), rand(Point2, 10))
+    GslibIO.save(fname, sdata, pointvars=["X", "Y"])
+    ndata = GslibIO.load(fname)
+    @test sdata == ndata
+    flines = readlines(fname)
+    @test count(==("X"), flines) == 2
+    @test count(==("Y"), flines) == 2
+    rm(fname)
+
+    # error: invalid number of point variable names
+    fname = joinpath(savedir, "error.gslib")
+    sdata = georef((; a=rand(10)), rand(Point2, 10))
+    @test_throws ArgumentError GslibIO.save(fname, sdata, pointvars=["x", "y", "z"])
+    # error: geometries with more than 3 dimensions
+    sdata = georef((; a=rand(10)), rand(Point{4,Float64}, 10))
+    @test_throws ArgumentError GslibIO.save(fname, sdata)
   end
 
   @testset "LegacyParser" begin
