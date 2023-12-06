@@ -83,6 +83,17 @@ savedir = mktempdir()
     @test count(==("z"), flines) == 2
     rm(fname)
 
+    # make point variable names unique
+    fname = joinpath(savedir, "extended_pset.gslib")
+    sdata = georef((x=rand(10), y=rand(10)), rand(Point2, 10))
+    GslibIO.save(fname, sdata)
+    ndata = GslibIO.load(fname)
+    @test sdata == ndata
+    flines = readlines(fname)
+    @test count(==("x_"), flines) == 2
+    @test count(==("y_"), flines) == 2
+    rm(fname)
+
     # error: invalid number of coordinate names
     fname = joinpath(savedir, "error.gslib")
     sdata = georef((; a=rand(10)), rand(Point2, 10))

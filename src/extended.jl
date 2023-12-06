@@ -7,17 +7,17 @@ nextline(io) = strip(readline(io))
 
 function genpvars(Dim, vars)
   pvars = if Dim == 1
-    [:x]
+    ["x"]
   elseif Dim == 2
-    [:x, :y]
+    ["x", "y"]
   else
-    [:x, :y, :z]
+    ["x", "y", "z"]
   end
 
   # make unique
   map(pvars) do var
     while var ∈ vars
-      var = Symbol(var, :_)
+      var = var * "_"
     end
     var
   end
