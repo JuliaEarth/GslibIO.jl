@@ -4,7 +4,24 @@
 
 # utility functions
 nextline(io) = strip(readline(io))
-genpvars(dom) = ["x$i" for i in 1:embeddim(dom)]
+
+function genpvars(Dim, vars)
+  pvars = if Dim == 1
+    [:x]
+  elseif Dim == 2
+    [:x, :y]
+  else
+    [:x, :y, :z]
+  end
+
+  # make unique
+  map(pvars) do var
+    while var ∈ vars
+      var = Symbol(var, :_)
+    end
+    var
+  end
+end
 
 # constants
 const DOMTYPES = ["grid", "pset"]
@@ -91,7 +108,7 @@ other domain types will be converted to `PointSet`.
 
 It is possible to define how the point coordinate variables will be saved 
 by passing a list of names (e.g. vector of strings) to the `pointvars` keyword argument,
-otherwise the names "x1", "x2", ..., "xn" will be used.
+otherwise the names "x", "y" and "z" will be used.
 
 Use the `header` keyword argument to define the title of the GSLIB file,
 if omitted the following default title will be used: 
@@ -100,23 +117,36 @@ if omitted the following default title will be used:
 save(file::AbstractString, geotable::AbstractGeoTable; kwargs...) =
   save(file, values(geotable), domain(geotable); kwargs...)
 
-function save(file::AbstractString, table, domain::Domain; pointvars=genpvars(domain), header=HEADER)
-  @assert length(pointvars) == embeddim(domain) "the length of `pointvars` must be equal to the domain dimension"
-
+function save(file::AbstractString, table, domain::Domain; pointvars=nothing, header=HEADER)
   cols = Tables.columns(table)
   vars = Tables.columnnames(cols)
+  Dim = embeddim(domain)
+
+  if Dim > 3
+    throw(ArgumentError("embedding dimensions greater than 3 are not supported"))
+  end
+
+  pvars = if isnothing(pointvars)
+    genpvars(Dim, vars)
+  else
+    if length(pointvars) ≠ Dim
+      throw(ArgumentError("the length of `pointvars` must be equal to $Dim (embedding dimension)"))
+    end
+    pointvars
+  end
+
   data = Tables.matrix(table)
   pdata = mapreduce(g -> coordinates(centroid(g)), hcat, domain) |> transpose
 
   open(file; write=true) do io
     write(io, "$header\n")
     write(io, "pset\n")
-    for var in pointvars
+    for var in pvars
       write(io, "$var\n")
     end
-    nvars = length(pointvars) + length(vars)
+    nvars = length(pvars) + length(vars)
     write(io, "$nvars\n")
-    for var in pointvars
+    for var in pvars
       write(io, "$var\n")
     end
     for var in vars
