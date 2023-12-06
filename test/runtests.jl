@@ -105,7 +105,7 @@ savedir = mktempdir()
     @test count(==("Y"), flines) == 2
     rm(fname)
 
-    # error: invalid number of coordinate names
+    # error: invalid number of point variable names
     fname = joinpath(savedir, "error.gslib")
     sdata = georef((; a=rand(10)), rand(Point2, 10))
     @test_throws ArgumentError GslibIO.save(fname, sdata, pointvars=["x", "y", "z"])
