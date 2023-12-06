@@ -107,7 +107,7 @@ As the GSLIB format only supports `CartesianGrid` and `PointSet`,
 other domain types will be converted to `PointSet`.
 
 It is possible to define how the point coordinate variables will be saved 
-by passing a list of names (e.g. vector of strings) to the `pointvars` keyword argument,
+by passing a list of names (e.g. vector of strings or symbols) to the `pointvars` keyword argument,
 otherwise the names "x", "y" and "z" will be used.
 
 Use the `header` keyword argument to define the title of the GSLIB file,
