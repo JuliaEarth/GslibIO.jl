@@ -197,7 +197,7 @@ savedir = mktempdir()
     @test isequal(por, [0.1, 0.2, 0.3, 0.4])
 
     # test when coordnames are not in varnames
-    @test_throws AssertionError GslibIO.load_legacy(fname, (:x, :y, :Elevation))
+    @test_throws ArgumentError GslibIO.load_legacy(fname, (:x, :y, :Elevation))
 
     # test if storing/loading recovers data
     fname = tempname() * ".gslib"
