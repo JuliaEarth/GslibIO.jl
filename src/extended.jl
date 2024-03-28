@@ -5,16 +5,17 @@
 # utility functions
 nextline(io) = strip(readline(io))
 
-function genpvars(Dim, vars)
-  pvars = if Dim == 1
+function genpvars(Dim)
+  if Dim == 1
     [:x]
   elseif Dim == 2
     [:x, :y]
   else
     [:x, :y, :z]
   end
+end
 
-  # make unique
+function makeunique(pvars, vars)
   map(pvars) do var
     while var ∈ vars
       var = Symbol(var, :_)
@@ -59,16 +60,20 @@ function _load_grid(io::IO)
   # read variable count
   nvars = parse(Int, nextline(io))
 
-  # read variable names
-  vars = map(i -> Symbol(nextline(io)), 1:nvars)
+  table = if nvars > 0
+    # read variable names
+    vars = map(i -> Symbol(nextline(io)), 1:nvars)
 
-  # read variable values
-  X = readdlm(io)
+    # read variable values
+    X = readdlm(io)
 
-  # create data table
-  values = (; zip(vars, eachcol(X))...)
+    # create data table
+    (; zip(vars, eachcol(X))...)
+  else
+    nothing
+  end
   domain = CartesianGrid(dims, origin, spacing)
-  georef(values, domain)
+  georef(table, domain)
 end
 
 function _load_pset(io::IO)
@@ -91,11 +96,8 @@ function _load_pset(io::IO)
   X = readdlm(io)
 
   # create data table
-  data = Dict(zip(vars, eachcol(X)))
-  points = map(Point, (data[v] for v in pvars)...)
-  values = (; (v => data[v] for v in setdiff(vars, pvars))...)
-  domain = PointSet(points)
-  georef(values, domain)
+  table = (; zip(vars, eachcol(X))...)
+  georef(table, pvars)
 end
 
 """
@@ -118,8 +120,6 @@ save(file::AbstractString, geotable::AbstractGeoTable; kwargs...) =
   save(file, values(geotable), domain(geotable); kwargs...)
 
 function save(file::AbstractString, table, domain::Domain; pointvars=nothing, header=HEADER)
-  cols = Tables.columns(table)
-  vars = Tables.columnnames(cols)
   Dim = embeddim(domain)
 
   if Dim > 3
@@ -127,7 +127,7 @@ function save(file::AbstractString, table, domain::Domain; pointvars=nothing, he
   end
 
   pvars = if isnothing(pointvars)
-    genpvars(Dim, vars)
+    genpvars(Dim)
   else
     if length(pointvars) ≠ Dim
       throw(ArgumentError("the length of `pointvars` must be equal to $Dim (embedding dimension)"))
@@ -135,8 +135,25 @@ function save(file::AbstractString, table, domain::Domain; pointvars=nothing, he
     pointvars
   end
 
-  data = Tables.matrix(table)
+  vars = if isnothing(table)
+    nothing
+  else
+    cols = Tables.columns(table)
+    Tables.columnnames(cols)
+  end
+
+  if !isnothing(vars)
+    pvars = makeunique(pvars, vars)
+  end
+
+  nvars = isnothing(vars) ? length(pvars) : length(pvars) + length(vars)
+
   pdata = mapreduce(g -> coordinates(centroid(g)), hcat, domain) |> transpose
+  data = if isnothing(table)
+    pdata
+  else
+    [pdata Tables.matrix(table)]
+  end
 
   open(file; write=true) do io
     write(io, "$header\n")
@@ -144,22 +161,30 @@ function save(file::AbstractString, table, domain::Domain; pointvars=nothing, he
     for var in pvars
       write(io, "$var\n")
     end
-    nvars = length(pvars) + length(vars)
     write(io, "$nvars\n")
     for var in pvars
       write(io, "$var\n")
     end
-    for var in vars
-      write(io, "$var\n")
+    if !isnothing(vars)
+      for var in vars
+        write(io, "$var\n")
+      end
     end
-    writedlm(io, [pdata data])
+    writedlm(io, data)
   end
 end
 
 function save(file::AbstractString, table, grid::CartesianGrid; header=HEADER, kwargs...)
-  cols = Tables.columns(table)
-  vars = Tables.columnnames(cols)
-  data = Tables.matrix(table)
+  vars = if isnothing(table)
+    nothing
+  else
+    cols = Tables.columns(table)
+    Tables.columnnames(cols)
+  end
+
+  nvars = isnothing(vars) ? 0 : length(vars)
+
+  data = isnothing(table) ? nothing : Tables.matrix(table)
 
   open(file; write=true) do io
     write(io, "$header\n")
@@ -167,11 +192,14 @@ function save(file::AbstractString, table, grid::CartesianGrid; header=HEADER, k
     write(io, join(size(grid), " ") * "\n")
     write(io, join(coordinates(minimum(grid)), " ") * "\n")
     write(io, join(spacing(grid), " ") * "\n")
-    nvars = length(vars)
     write(io, "$nvars\n")
-    for var in vars
-      write(io, "$var\n")
+    if !isnothing(vars)
+      for var in vars
+        write(io, "$var\n")
+      end
     end
-    writedlm(io, data)
+    if !isnothing(data)
+      writedlm(io, data)
+    end
   end
 end
