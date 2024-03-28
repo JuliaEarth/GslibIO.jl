@@ -40,7 +40,9 @@ function load(file::AbstractString)
 
     # domain type
     domtype = nextline(io)
-    @assert domtype ∈ DOMTYPES "invalid domain type"
+    if domtype ∉ DOMTYPES
+      error("invalid domain type")
+    end
 
     # load data
     if domtype == "grid"
