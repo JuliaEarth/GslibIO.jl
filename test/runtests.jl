@@ -26,7 +26,15 @@ savedir = mktempdir()
     GslibIO.save(fname, sdata)
     ndata = GslibIO.load(fname)
     @test ndata == sdata
+    rm(fname)
 
+    # geotable without attributes
+    fname = joinpath(savedir, "noattrs_grid.gslib")
+    sdata = georef(nothing, CartesianGrid(10, 10))
+    GslibIO.save(fname, sdata)
+    ndata = GslibIO.load(fname)
+    @test isnothing(values(ndata))
+    @test ndata == sdata
     rm(fname)
   end
 
@@ -103,6 +111,15 @@ savedir = mktempdir()
     flines = readlines(fname)
     @test count(==("X"), flines) == 2
     @test count(==("Y"), flines) == 2
+    rm(fname)
+
+    # geotable without attributes
+    fname = joinpath(savedir, "noattrs_pset.gslib")
+    sdata = georef(nothing, rand(Point2, 10))
+    GslibIO.save(fname, sdata)
+    ndata = GslibIO.load(fname)
+    @test isnothing(values(ndata))
+    @test ndata == sdata
     rm(fname)
 
     # error: invalid number of point variable names
