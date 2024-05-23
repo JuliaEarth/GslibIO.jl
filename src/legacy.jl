@@ -120,16 +120,16 @@ function save_legacy(
       throw(ArgumentError("the length of coordinate names must be equal to the coordinate dimension"))
     end
     varnames = [coordnames...; propertynames(tab)...]
-    xs = (coordinates(centroid(dom, i)) for i in 1:nelements(dom))
+    xs = (ustrip.(to(centroid(dom, i))) for i in 1:nelements(dom))
     X = reduce(hcat, xs)'
     V = Tables.matrix(tab)
     matrix = [X V]
   elseif dom isa CartesianGrid
-    # a regular grid does not need to save coordinates
+    # a Cartesian grid does not need to save coordinates
     varnames = propertynames(tab)
     matrix = Tables.matrix(tab)
   else
-    @error "can only save data defined on point sets or regular grids"
+    @error "can only save data defined on point sets or Cartesian grids"
   end
 
   save_legacy(filename, matrix, Tuple(varnames), header, na)

@@ -5,8 +5,10 @@
 module GslibIO
 
 using Meshes
-using Tables
 using GeoTables
+
+using Tables
+using Unitful
 
 using Printf
 using DelimitedFiles

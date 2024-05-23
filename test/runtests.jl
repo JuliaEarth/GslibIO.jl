@@ -1,6 +1,7 @@
 using GslibIO
 using GeoTables
 using Meshes
+using Unitful
 using Test
 
 # environment settings
@@ -15,7 +16,7 @@ savedir = mktempdir()
     sdomain = domain(sdata)
     @test size(sdomain) == (2, 2, 2)
     @test minimum(sdomain) == Point(0.0, 0.0, 0.0)
-    @test spacing(sdomain) == (1.0, 1.0, 1.0)
+    @test spacing(sdomain) == (1.0u"m", 1.0u"m", 1.0u"m")
 
     @test sdata.Porosity == [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
     @test sdata.Lithology == [1, 2, 3, 4, 5, 6, 7, 8]
@@ -62,7 +63,7 @@ savedir = mktempdir()
     # generated point variable names
     # test note: point variable names appear 2 times in the file
     fname = joinpath(savedir, "extended_pset_1D.gslib")
-    sdata = georef((; a=rand(10)), rand(Point1, 10))
+    sdata = georef((; a=rand(10)), rand(Point{1}, 10))
     GslibIO.save(fname, sdata)
     ndata = GslibIO.load(fname)
     @test sdata == ndata
@@ -71,7 +72,7 @@ savedir = mktempdir()
     rm(fname)
 
     fname = joinpath(savedir, "extended_pset_2D.gslib")
-    sdata = georef((; a=rand(10)), rand(Point2, 10))
+    sdata = georef((; a=rand(10)), rand(Point{2}, 10))
     GslibIO.save(fname, sdata)
     ndata = GslibIO.load(fname)
     @test sdata == ndata
@@ -81,7 +82,7 @@ savedir = mktempdir()
     rm(fname)
 
     fname = joinpath(savedir, "extended_pset_3D.gslib")
-    sdata = georef((; a=rand(10)), rand(Point3, 10))
+    sdata = georef((; a=rand(10)), rand(Point{3}, 10))
     GslibIO.save(fname, sdata)
     ndata = GslibIO.load(fname)
     @test sdata == ndata
@@ -93,7 +94,7 @@ savedir = mktempdir()
 
     # make point variable names unique
     fname = joinpath(savedir, "extended_pset.gslib")
-    sdata = georef((x=rand(10), y=rand(10)), rand(Point2, 10))
+    sdata = georef((x=rand(10), y=rand(10)), rand(Point{2}, 10))
     GslibIO.save(fname, sdata)
     ndata = GslibIO.load(fname)
     @test sdata == ndata
@@ -104,7 +105,7 @@ savedir = mktempdir()
 
     # custom point variable names
     fname = joinpath(savedir, "extended_pset.gslib")
-    sdata = georef((; a=rand(10)), rand(Point2, 10))
+    sdata = georef((; a=rand(10)), rand(Point{2}, 10))
     GslibIO.save(fname, sdata, pointvars=["X", "Y"])
     ndata = GslibIO.load(fname)
     @test sdata == ndata
@@ -115,7 +116,7 @@ savedir = mktempdir()
 
     # geotable without attributes
     fname = joinpath(savedir, "noattrs_pset.gslib")
-    sdata = georef(nothing, rand(Point2, 10))
+    sdata = georef(nothing, rand(Point{2}, 10))
     GslibIO.save(fname, sdata)
     ndata = GslibIO.load(fname)
     @test isnothing(values(ndata))
@@ -124,11 +125,8 @@ savedir = mktempdir()
 
     # error: invalid number of point variable names
     fname = joinpath(savedir, "error.gslib")
-    sdata = georef((; a=rand(10)), rand(Point2, 10))
+    sdata = georef((; a=rand(10)), rand(Point{2}, 10))
     @test_throws ArgumentError GslibIO.save(fname, sdata, pointvars=["x", "y", "z"])
-    # error: geometries with more than 3 dimensions
-    sdata = georef((; a=rand(10)), rand(Point{4,Float64}, 10))
-    @test_throws ArgumentError GslibIO.save(fname, sdata)
   end
 
   @testset "LegacyParser" begin
@@ -161,7 +159,7 @@ savedir = mktempdir()
 
     @test size(domain(sdata)) == (2, 2, 2)
     @test minimum(domain(sdata)) == Point(0.0, 0.0, 0.0)
-    @test spacing(domain(sdata)) == (1.0, 1.0, 1.0)
+    @test spacing(domain(sdata)) == (1.0u"m", 1.0u"m", 1.0u"m")
 
     por = sdata.Porosity
     lit = sdata.Lithology

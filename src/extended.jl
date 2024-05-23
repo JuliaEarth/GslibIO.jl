@@ -150,7 +150,7 @@ function save(file::AbstractString, table, domain::Domain; pointvars=nothing, he
 
   nvars = isnothing(vars) ? length(pvars) : length(pvars) + length(vars)
 
-  pdata = mapreduce(g -> coordinates(centroid(g)), hcat, domain) |> transpose
+  pdata = mapreduce(g -> ustrip.(to(centroid(g))), hcat, domain) |> transpose
   data = if isnothing(table)
     pdata
   else
@@ -192,8 +192,8 @@ function save(file::AbstractString, table, grid::CartesianGrid; header=HEADER, k
     write(io, "$header\n")
     write(io, "grid\n")
     write(io, join(size(grid), " ") * "\n")
-    write(io, join(coordinates(minimum(grid)), " ") * "\n")
-    write(io, join(spacing(grid), " ") * "\n")
+    write(io, join(ustrip.(to(minimum(grid))), " ") * "\n")
+    write(io, join(ustrip.(spacing(grid)), " ") * "\n")
     write(io, "$nvars\n")
     if !isnothing(vars)
       for var in vars
