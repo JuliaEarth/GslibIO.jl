@@ -72,7 +72,7 @@ savedir = mktempdir()
     rm(fname)
 
     fname = joinpath(savedir, "extended_pset_2D.gslib")
-    sdata = georef((; a=rand(10)), rand(Point{2}, 10))
+    sdata = georef((; a=[1.0, 2.0, 3.0]), [(0.0, 0.0), (1.0, 0.0), (0.0, 1.0)])
     GslibIO.save(fname, sdata)
     ndata = GslibIO.load(fname)
     @test sdata == ndata
@@ -82,7 +82,7 @@ savedir = mktempdir()
     rm(fname)
 
     fname = joinpath(savedir, "extended_pset_3D.gslib")
-    sdata = georef((; a=rand(10)), rand(Point{3}, 10))
+    sdata = georef((; a=[1.0, 2.0, 3.0]), [(0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0)])
     GslibIO.save(fname, sdata)
     ndata = GslibIO.load(fname)
     @test sdata == ndata
@@ -94,7 +94,7 @@ savedir = mktempdir()
 
     # make point variable names unique
     fname = joinpath(savedir, "extended_pset.gslib")
-    sdata = georef((x=rand(10), y=rand(10)), rand(Point{2}, 10))
+    sdata = georef((x=rand(10), y=rand(10)), rand(Point, 10))
     GslibIO.save(fname, sdata)
     ndata = GslibIO.load(fname)
     @test sdata == ndata
@@ -105,7 +105,7 @@ savedir = mktempdir()
 
     # custom point variable names
     fname = joinpath(savedir, "extended_pset.gslib")
-    sdata = georef((; a=rand(10)), rand(Point{2}, 10))
+    sdata = georef((; a=[1.0, 2.0, 3.0]), [(0.0, 0.0), (1.0, 0.0), (0.0, 1.0)])
     GslibIO.save(fname, sdata, pointvars=["X", "Y"])
     ndata = GslibIO.load(fname)
     @test sdata == ndata
@@ -116,7 +116,7 @@ savedir = mktempdir()
 
     # geotable without attributes
     fname = joinpath(savedir, "noattrs_pset.gslib")
-    sdata = georef(nothing, rand(Point{2}, 10))
+    sdata = georef(nothing, rand(Point, 10))
     GslibIO.save(fname, sdata)
     ndata = GslibIO.load(fname)
     @test isnothing(values(ndata))
@@ -125,7 +125,7 @@ savedir = mktempdir()
 
     # error: invalid number of point variable names
     fname = joinpath(savedir, "error.gslib")
-    sdata = georef((; a=rand(10)), rand(Point{2}, 10))
+    sdata = georef((; a=[1.0, 2.0, 3.0]), [(0.0, 0.0), (1.0, 0.0), (0.0, 1.0)])
     @test_throws ArgumentError GslibIO.save(fname, sdata, pointvars=["x", "y", "z"])
   end
 
