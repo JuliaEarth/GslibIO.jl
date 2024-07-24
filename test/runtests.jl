@@ -63,7 +63,7 @@ savedir = mktempdir()
     # generated point variable names
     # test note: point variable names appear 2 times in the file
     fname = joinpath(savedir, "extended_pset_1D.gslib")
-    sdata = georef((; a=rand(10)), rand(Point{1}, 10))
+    sdata = georef((; a=rand(3)), [(1.0,), (2.0,), (3.0,)])
     GslibIO.save(fname, sdata)
     ndata = GslibIO.load(fname)
     @test sdata == ndata
