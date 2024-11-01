@@ -150,7 +150,8 @@ function save(file::AbstractString, table, domain::Domain; pointvars=nothing, he
 
   nvars = isnothing(vars) ? length(pvars) : length(pvars) + length(vars)
 
-  pdata = mapreduce(g -> ustrip.(to(centroid(g))), hcat, domain) |> transpose
+  coord = map(g -> ustrip.(to(centroid(g))), domain)
+  pdata = reduce(hcat, coord) |> transpose
   data = if isnothing(table)
     pdata
   else
