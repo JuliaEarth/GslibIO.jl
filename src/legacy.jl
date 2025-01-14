@@ -120,8 +120,8 @@ function save_legacy(
       throw(ArgumentError("the length of coordinate names must be equal to the coordinate dimension"))
     end
     varnames = [coordnames...; propertynames(tab)...]
-    xs = [ustrip.(to(centroid(dom, i))) for i in 1:nelements(dom)]
-    X = reduce(hcat, xs) |> transpose
+    xyz(i) = ustrip.(to(centroid(dom, i)))
+    X = stack(xyz, 1:nelements(dom), dims=1)
     V = Tables.matrix(tab)
     matrix = [X V]
   elseif dom isa CartesianGrid
