@@ -1,6 +1,6 @@
 # GslibIO.jl
 
-Utilities to read/write *extended* and *legacy*
+Load/save *extended* and *legacy*
 [GSLIB](http://www.gslib.com/gslib_help/format.html)
 files in Julia.
 
