@@ -74,7 +74,7 @@ function _load_grid(io::IO)
   else
     nothing
   end
-  domain = CartesianGrid(dims, origin, spacing)
+  domain = CartesianGrid(origin, spacing, GridTopology(dims))
   georef(table, domain)
 end
 

@@ -51,7 +51,7 @@ function load_legacy(
 
   # create table and domain
   table = (; zip(spec.varnames, eachcol(spec.data))...)
-  domain = CartesianGrid(dims, origin, spacing)
+  domain = CartesianGrid(origin, spacing, GridTopology(dims))
 
   georef(table, domain)
 end
